@@ -7,13 +7,13 @@ import utensil.{FindPicBuild, FindPicResult, NoFindPic}
 trait Find[T] {
   def run(c: ClientRequest): FindPicResult
 
-  def map[To](f: FindPicBuild[T] => FindPicBuild[To]): Find[To]
+  def map[To<:T ](f: FindPicBuild[T] => FindPicBuild[To]): Find[To]
 }
 
 class FindVal[T <: FindPicBuild.Goal](v: FindPicBuild[T]) extends Find[T] {
   override def run(c: ClientRequest): FindPicResult = v.withOriginal(c.image.toOriginal).run()
 
-  override def map[To](f: FindPicBuild[T] => FindPicBuild[To]): Find[To] = new FindVal[To](f(v))
+  override def map[To<:T](f: FindPicBuild[T] => FindPicBuild[To]): Find[To] = new FindVal[To](f(v))
 }
 
 class FindOr[T <: FindPicBuild.Goal](l: Find[T], r: Find[T]) extends Find[T] {
@@ -26,7 +26,7 @@ class FindOr[T <: FindPicBuild.Goal](l: Find[T], r: Find[T]) extends Find[T] {
     else lResult
   }
 
-  override def map[To](f: FindPicBuild[T] => FindPicBuild[To]): Find[To] = new FindOr[To](l.map(f), r.map(f))
+  override def map[To<:T](f: FindPicBuild[T] => FindPicBuild[To]): Find[To] = new FindOr[To](l.map(f), r.map(f))
 }
 
 object Find {
@@ -39,7 +39,7 @@ object Find {
   //    def or[T2 <: FindPicBuild.Goal](r: FindPicBuild[T2]) = new FindOr(apply(l), apply(r))
   //  }
 
-  def apply[T](fpb: FindPicBuild[T]): FindVal[T] = new FindVal[T](fpb)
+  def apply[T<:FindPicBuild.Goal](fpb: FindPicBuild[T]): FindVal[T] = new FindVal[T](fpb)
   def build(image:GoalImage) = apply(FindPicBuild().withGoal(image))
 
   def find(image: GoalImage) = (clientRequest: ClientRequest) => FindPicBuild()
