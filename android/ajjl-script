@@ -1,0 +1,40 @@
+import "ShanHai.lua"
+
+While True
+
+
+    //    Dim result = ShanHai.execute("/sdcard/curl http://192.168.1.100:9898/ajjl/action")
+    SnapShot "/sdcard/screen.png"
+    dim result =ShanHai.execute ("/sdcard/curl -F 'screen=@/sdcard/screen.png' http://192.168.1.100:9898/scala/ajjl")
+    Dim delay_time = 1000
+
+    If not (trim(result) = "") Then
+        dim arr = Split(result,";")
+
+        For Each task In arr
+
+            Dim table = Encode.JsonToTable(task)
+
+            If table["action"] = "delay" Then
+                TracePrint(task)
+                Delay table["time"]
+                delay_time = 0
+                TracePrint("delay end")
+            End If
+            If table["action"] = "tap" Then
+                TracePrint(task)
+                Tap table["x"], table["y"]
+
+            End If
+        Next
+    Else
+
+        TracePrint("get result failure or result action is empty")
+
+    End If
+
+
+
+    Delay delay_time
+
+Wend
