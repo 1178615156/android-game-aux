@@ -43,7 +43,7 @@ class WdjWarActor extends FSM[Status, Data]
 
   def sureWarResult(): StateFunction = {
     case Event(c: ClientRequest, _) =>
-      Find(Images.Wdj.fightResult)(c).run() match {
+      Find(Images.Wdj.fightResult).run(c) match {
         case IsFindPic(point) =>
           logger.info("sure war result")
           Build.stay().replying(Commands().tap(Point(1, 1))).build()

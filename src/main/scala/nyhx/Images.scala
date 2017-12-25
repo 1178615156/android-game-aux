@@ -64,7 +64,7 @@ object Images {
     val group       = image("tx-group.png")
     val result      = image("tx-result.png")
 
-    //    val _1  = image("tx-1.png")
+    val _1  = image("tx-1.png")
     val _2  = image("tx-2.png")
     val _3  = image("tx-3.png")
     val _4  = image("tx-4.png")

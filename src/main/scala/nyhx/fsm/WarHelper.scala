@@ -53,7 +53,7 @@ object WarHelper {
 
   def checkMpEmpty() = Props(new MyAct {
     exec { c =>
-      val result = Find(Images.Adventure.mpEmpty)(c).withThreshold(0.99).run()
+      val result = Find(Images.Adventure.mpEmpty).map(_.withThreshold(0.99)).run(c)
       result match {
         case IsFindPic(point) =>
           logger.warn("mp empty in war;")

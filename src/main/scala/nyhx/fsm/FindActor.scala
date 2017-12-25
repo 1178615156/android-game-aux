@@ -2,11 +2,13 @@ package nyhx.fsm
 
 import akka.actor.{Actor, ActorRef, FSM, Props}
 import models.{ClientRequest, Commands, NoFindPicException}
+import nyhx.Find
 import org.slf4j.{Logger, LoggerFactory}
 import utensil.{FindPicBuild, IsFindPic, NoFindPic}
 import nyhx.Find._
 
 object FindActor {
+  val logger: Logger = LoggerFactory.getLogger(this.getClass)
 
 
   trait Status extends BaseStatus
@@ -23,7 +25,7 @@ object FindActor {
 
   object Success extends Status
 
-  trait Condition
+  trait Condition extends BaseStatus
 
   object IsFind extends Condition
 
@@ -35,22 +37,38 @@ object FindActor {
 
   object Nothing extends Condition
 
-  type Func = ClientRequest => FindPicBuild[FindPicBuild.Request]
+  def touch[T<:FindPicBuild.Goal](f: Find[T], con: Condition = MustFind) = Props(new FindActor(Touch, con, f))
 
-  def touch(f: Func, condition: Condition = MustFind) = Props(new FindActor(Touch, condition, f))
+  //    Props(new MyFsmAct {
+  //    when(MustFind) {
+  //      case Event(c: ClientRequest, _) => f.run(c) match {
+  //        case IsFindPic(point) =>
+  //          val goal = f.values.map(_.goal.get.simpleName)
+  //          logger.info(s"is find $goal -> touch")
+  //          Build.goto(Finish).using(NoData).replying(Commands().tap(point)).build()
+  //        case NoFindPic()      =>
+  //          val goal = f.values.map(_.goal.get.simpleName)
+  //          logger.error(s"no find $goal -> error")
+  //          Build.goto(Error).using(TaskFailure(NoFindPicException(""))).replying(Commands()).build()
+  //      }
+  //    }
+  //
+  //  })
 
-  def keepTouch(f: Func) = Props(new FindActor(KeepTouch, Nothing, f))
+  def keepTouch[T<:FindPicBuild.Goal](f: Find[T]) = Props(new FindActor(KeepTouch, Nothing, f))
 
-  def waitIsFind(f:Func) =  Props(new FindActor(WaitFind, IsFind, f))
-  def waitNoFind(f:Func) =  Props(new FindActor(WaitFind, NoFind, f))
-  def waitOf(condition: Condition, f: Func) = Props(new FindActor(WaitFind, condition, f))
+  def waitIsFind[T<:FindPicBuild.Goal](f: Find[T]) = Props(new FindActor(WaitFind, IsFind, f))
+
+  def waitNoFind[T<:FindPicBuild.Goal](f: Find[T]) = Props(new FindActor(WaitFind, NoFind, f))
+
+  def waitOf[T<:FindPicBuild.Goal](condition: Condition, f: Find[T]) = Props(new FindActor(WaitFind, condition, f))
 }
 
 import FindActor._
 
-class FindActor(status: FindActor.Status,
+class FindActor[T<:FindPicBuild.Goal](status: FindActor.Status,
                 condition: Condition,
-                findPicBuild: ClientRequest => FindPicBuild[FindPicBuild.Request])
+                findPicBuild: Find[T])
   extends Actor
     with FSM[FindActor.Status, FindActor.Condition] {
   val logger: Logger = LoggerFactory.getLogger(this.getClass)
@@ -59,7 +77,7 @@ class FindActor(status: FindActor.Status,
 
   when(Touch) {
     case Event(c: ClientRequest, MustFind) =>
-      val goal = findPicBuild(c).goal.get.simpleName
+      val goal = findPicBuild.values.map(_.goal.get.simpleName)
       findPicBuild.run(c) match {
         case NoFindPic()      => goto(FailureNoFind).replying(Commands())
         case IsFindPic(point) =>
@@ -67,7 +85,7 @@ class FindActor(status: FindActor.Status,
           goto(Success).replying(Commands().tap(point))
       }
     case Event(c: ClientRequest, IfFind)   =>
-      val goal = findPicBuild(c).goal.get.simpleName
+      val goal = findPicBuild.values.map(_.goal.get.simpleName)
       findPicBuild.run(c) match {
         case NoFindPic()      => goto(Success).replying(Commands())
         case IsFindPic(point) =>
@@ -80,7 +98,7 @@ class FindActor(status: FindActor.Status,
   }
   when(KeepTouch) {
     case Event(c: ClientRequest, Nothing) =>
-      val goal = findPicBuild(c).goal.get.simpleName
+      val goal = findPicBuild.values.map(_.goal.get.simpleName)
       findPicBuild.run(c) match {
         case NoFindPic()      => goto(Success).replying(Commands())
         case IsFindPic(point) =>
@@ -91,11 +109,11 @@ class FindActor(status: FindActor.Status,
 
   when(WaitFind) {
     case Event(c: ClientRequest, IsFind) =>
-      val goal = findPicBuild(c).goal.get.simpleName
+      val goal = findPicBuild.values.map(_.goal.get.simpleName)
       findPicBuild.run(c) match {
-        case x@NoFindPic()      =>
+        case x@NoFindPic()    =>
 
-          logger.info(s"wait find ($goal) no find , re try : sim:${x.sim }")
+          logger.info(s"wait find ($goal) no find , re try : sim:${x.sim}")
           stay().replying(Commands())
         case IsFindPic(point) =>
           logger.info(s"wait find ($goal) is find , success")

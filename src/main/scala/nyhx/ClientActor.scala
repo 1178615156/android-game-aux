@@ -61,9 +61,9 @@ class ClientActor(args: Seq[String]) extends FSM[Status, Data] with FsmHelper[St
   else
     startWith(War, actorOf(map(War)))
 
-  startWith(War, actorOf(map(War)))
+//  startWith(War, actorOf(map(War)))
   //  startWith(Wdj, actorOf(map(Wdj)))
-  //  startWith(Tx, actorOf(map(Tx)))
+    startWith(Tx, actorOf(map(Tx)))
   //  startWith(Dismissed, map(Dismissed)())
   when(War)(work(nextStatus = goto(Dismissed).using(actorOf(map(Dismissed)))))
   when(Dismissed)(work(nextStatus = goto(War).using(actorOf(map(War)))))
