@@ -6,3 +6,7 @@
 **/.ipynb_checkpoints
 screen.png
 android/ajjl.script
+**/*.iml
+**/.gradle
+**/adnroid/build
+**/android/app/build

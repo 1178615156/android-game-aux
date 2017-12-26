@@ -7,15 +7,13 @@ trait Command {
 }
 
 case class TapCommand(x: Int, y: Int, action: String = "tap") extends Command {
-  implicit val json = Json.format[TapCommand]
 
-  override def toJsonString = Json.toJson(this).toString()
+  override def toJsonString = Json.toJson(this)(TapCommand.json).toString()
 }
 
 case class DelayCommand(time: Int, action: String = "delay") extends Command {
-  implicit val json = Json.format[DelayCommand]
 
-  override def toJsonString = Json.toJson(this).toString()
+  override def toJsonString = Json.toJson(this)(DelayCommand.json).toString()
 }
 
 case class Commands(seq: Command*) {
@@ -24,4 +22,13 @@ case class Commands(seq: Command*) {
   def tap(point: Point) = add(TapCommand(point.x, point.y))
 
   def delay(time: Int) = add(DelayCommand(time))
+}
+
+
+object DelayCommand{
+  implicit val json = Json.format[DelayCommand]
+}
+
+object TapCommand{
+  implicit val json = Json.format[TapCommand]
 }

@@ -13,8 +13,9 @@ import akka.stream.ActorMaterializer
 import akka.util.Timeout
 import better.files._
 import http.CollectRequestInfo.collectRequestInfo
-import models.{ClientRequest, Commands, Image}
+import models.{ClientRequest, Commands, DelayCommand, Image}
 import org.slf4j.LoggerFactory
+import play.api.libs.json.Json
 
 trait AkkaSources {
   implicit val system          : ActorSystem              = ActorSystem()
@@ -30,6 +31,27 @@ class HttpService(workActor: ActorRef)(implicit akkaSources: AkkaSources) {
   logger.info("start")
 
   import akkaSources._
+
+  val myAndroid = post(
+    path(PathMatcher("files")) {
+      uploadedFile("screen") { case (fileInfo, jfile) =>
+        val file = File(s"F:/tmp/android-screen.png")
+        File(jfile.getAbsolutePath).moveTo(file, true)
+
+//        complete(Json.toJson(List(DelayCommand(1000))).toString())
+        val feature = workActor
+          .ask(ClientRequest(Image(file.pathAsString))).mapTo[Commands]
+          .map(e => e.seq.map(_.toJsonString).mkString("[",",","]"))
+        onComplete(feature) {
+          case Success(x) => complete(x)
+          case Failure(x) =>
+            x.printStackTrace()
+            System.exit(-1)
+            ???
+        }
+      }
+    }
+  )
 
   val route = post(
     // url 路径 为 scala/ajjl
@@ -55,7 +77,7 @@ class HttpService(workActor: ActorRef)(implicit akkaSources: AkkaSources) {
       }
     }) ~ get(path("hello")(complete("hello world")))
 
-  lazy val http = Http().bindAndHandle(collectRequestInfo(route), "0.0.0.0", 9898)
+  lazy val http = Http().bindAndHandle(collectRequestInfo(route ~ myAndroid), "0.0.0.0", 9898)
 
 
 }
