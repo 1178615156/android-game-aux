@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.yujieshui.myapplication.MainActivity">
+
+    <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+        <Button android:id="@+id/run"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="run" tools:layout_editor_absoluteY="264dp" tools:layout_editor_absoluteX="131dp"
+                android:layout_marginBottom="69dp"
+                android:layout_alignBottom="@+id/stop" android:layout_centerHorizontal="true"/>
+        <Button android:id="@+id/stop"
+                android:text="stop"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true" android:layout_alignStart="@+id/run"
+                android:layout_marginBottom="22dp"/>
+        <EditText
+                android:id="@+id/ip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:inputType="textPersonName"
+                android:hint="ip"
+                android:ems="10"
+                tools:layout_editor_absoluteY="119dp" tools:layout_editor_absoluteX="84dp"
+                android:layout_above="@+id/port" android:layout_centerHorizontal="true"
+                android:layout_marginBottom="18dp"/>
+        <EditText
+                android:id="@+id/port"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:inputType="textPersonName"
+                android:hint="port"
+                android:ems="10"
+                tools:layout_editor_absoluteY="186dp" tools:layout_editor_absoluteX="84dp"
+                android:layout_marginBottom="30dp" android:layout_above="@+id/run" android:layout_alignStart="@+id/ip"/>
+    </RelativeLayout>
+
+</android.support.constraint.ConstraintLayout>
