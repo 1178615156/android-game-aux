@@ -1,4 +1,4 @@
 <resources>
-    <string name="app_name">android-game-aux</string>
+    <string name="app_name">android_game_aux</string>
     <string name="ip">ip</string>
 </resources>

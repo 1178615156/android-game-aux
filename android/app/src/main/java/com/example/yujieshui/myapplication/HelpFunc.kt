@@ -30,7 +30,7 @@ object HelpFunc {
     return true
   }
 
-  fun execShellCmd(cmd: String): String? {
+  fun execShellCmd(cmd: String) {
 
     try {
       // 申请获取root权限，这一步很重要，不然会没有作用
@@ -42,10 +42,8 @@ object HelpFunc {
       dataOutputStream.close()
       outputStream.close()
 
-      return BufferedReader(InputStreamReader(process.inputStream)).readText()
     } catch (t: Throwable) {
       t.printStackTrace()
-      return null;
     }
 
   }
