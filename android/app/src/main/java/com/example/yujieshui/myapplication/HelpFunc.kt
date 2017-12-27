@@ -1,5 +1,6 @@
 package com.example.yujieshui.myapplication
 
+import android.util.Log
 import java.io.*
 import java.util.*
 
@@ -41,6 +42,7 @@ object HelpFunc {
       dataOutputStream.flush()
       dataOutputStream.close()
       outputStream.close()
+      process.waitFor()
 
     } catch (t: Throwable) {
       t.printStackTrace()
@@ -54,7 +56,10 @@ object HelpFunc {
 
   fun screencap(fileName: String) {
 //    execShellCmd("input keyevent 120")
+    val startTime = System.currentTimeMillis()
     execShellCmd("/system/bin/screencap -p " + fileName)
+    val endTime = System.currentTimeMillis()
+    Log.i("screencap","time:${endTime-startTime}")
 //        execShellCmd("/system/bin/screenshot -p " + fileName)
   }
 }

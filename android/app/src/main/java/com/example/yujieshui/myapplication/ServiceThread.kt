@@ -17,19 +17,18 @@ import java.io.File
 class ServiceThread(val ip: String, val port: String) : Thread() {
 
 
-
   override fun run() {
 //    test_screencap();return;
 //    StrictMode.setThreadPolicy(StrictMode.ThreadPolicy.Builder().detectDiskReads().detectDiskWrites().detectNetwork().penaltyLog().build())
     while (!this.isInterrupted) {
       try {
-//        val fileName = "/sdcard/tmp/screen-${System.currentTimeMillis()}.png"
-        val fileName = "/sdcard/tmp/screen.png"
+        val fileName = "/sdcard/tmp/screen-${System.currentTimeMillis()}.png"
+//        val fileName = "/sdcard/tmp/screen.png"
         HelpFunc.screencap(fileName)
         val file = File(fileName)
         Log.w("LogDemo", "screen size : " + file.length().toString())
 
-        val response = Utensil.postFile("http://${this.ip}:${this.port}/files", file)
+        val response = Utensil.postFile("http://${this.ip}:${this.port}/files", File(fileName))
         val json = Utensil.readJson(response)
 
         for (action in json) {
@@ -49,21 +48,17 @@ class ServiceThread(val ip: String, val port: String) : Thread() {
         return
       } catch (e: Exception) {
         e.printStackTrace()
-        Thread.sleep(1000)
+        return
+        try {
+          Thread.sleep(1000)
+        } catch (e: Exception) {
+          return
+        }
       }
     }
 
 
   }
-
-
-
-
-
-
-
-
-
 
 
   fun test_screencap() {

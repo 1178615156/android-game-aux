@@ -1,5 +1,7 @@
 package utensil
 
+import java.nio.file.{Files, Paths}
+
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
@@ -24,6 +26,8 @@ object FindPicBuild {
     val result = PythonScript.eval { jep =>
       val regex = "\\(([0-9|.]+), ?([0-9]+), ?([0-9]+)\\)".r
 
+      require(Files.exists(Paths.get(originalName)),originalName)
+      require(Files.exists(Paths.get(goalName)),goalName)
       jep.getValue(s"jvm_find_pic('$originalName','$goalName','$patten')") match {
         case regex(sim, x, y) => (sim.toDouble, x.toInt, y.toInt)
       }
