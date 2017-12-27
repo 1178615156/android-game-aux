@@ -37,34 +37,34 @@ class HttpService(workActor: ActorRef)(implicit akkaSources: AkkaSources) {
 
   val myAndroid = post(
     path(PathMatcher("files")) {
-      uploadedFile("screen") { case (fileInfo, jfile) =>
-        //上传过来的问会被保存到一个临时文件中,将它copy到我们想要的目录
-        println("aaa")
-        val file = File(s"F:/tmp/screen-${System.currentTimeMillis()}.png")
-        File(jfile.getAbsolutePath).moveTo(file, true)
-        complete(s"[${Json.toJson(DelayCommand(1000)).toString()}]")
-      }
-      //      fileUpload("screen") {
-      //        case (fileInfo, bytes) ⇒
-      //
-      //          val fileName = "D:/tmp/android-screen.png"
-      //          val uploadedF = bytes
-      //            .runWith(FileIO.toPath(new java.io.File(fileName).toPath))
-      //            .map(_ => better.files.File(fileName))
-      //
-      //          val feature = uploadedF.flatMap(file =>
-      //            workActor
-      //              .ask(ClientRequest(Image(file.pathAsString))).mapTo[Commands]
-      //              .map(e => e.seq.map(_.toJsonString).mkString("[", ",", "]"))
-      //          )
-      //          onComplete(feature) {
-      //            case Success(x) => complete(x)
-      //            case Failure(x) =>
-      //              x.printStackTrace()
-      //              System.exit(-1)
-      //              throw x
-      //          }
+      //      uploadedFile("screen") { case (fileInfo, jfile) =>
+      //        //上传过来的问会被保存到一个临时文件中,将它copy到我们想要的目录
+      //        println("aaa")
+      //        val file = File(s"F:/tmp/screen-${System.currentTimeMillis()}.png")
+      //        File(jfile.getAbsolutePath).moveTo(file, true)
+      //        complete(s"[${Json.toJson(DelayCommand(1000)).toString()}]")
       //      }
+      fileUpload("screen") {
+        case (fileInfo, bytes) ⇒
+
+          val fileName = "D:/tmp/android-screen.png"
+          val uploadedF = bytes
+            .runWith(FileIO.toPath(new java.io.File(fileName).toPath))
+            .map(_ => better.files.File(fileName))
+
+          val feature = uploadedF.flatMap(file =>
+            workActor
+              .ask(ClientRequest(Image(file.pathAsString))).mapTo[Commands]
+              .map(e => e.seq.map(_.toJsonString).mkString("[", ",", "]"))
+          )
+          onComplete(feature) {
+            case Success(x) => complete(x)
+            case Failure(x) =>
+              x.printStackTrace()
+              System.exit(-1)
+              throw x
+          }
+      }
     }
   )
 
