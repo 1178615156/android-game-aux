@@ -25,25 +25,31 @@
 ### 准备 - android
 
 - 一些用到的软件 https://pan.baidu.com/s/1kVDw5KV
+  - app-debug.apk
+  - 模拟器
+  - curl
+
 - 默认分辨率**540 * 960**
 
-- curl
-copy `curl`(在项目`android/curl`已经准备好了) 到你的手机或模拟器的`/sdcard`(即sd卡)去
+#### android 准备 
+- 方案一
+  - 从 https://pan.baidu.com/s/1kVDw5KV 下载app-debug.apk  安装到模拟器上  
+  - 填写 PC端的ip 和端口(默认 9898)
 
-### 准备 - 按键精灵(吾曾尝试使用screencap 截取屏幕,然效果不甚理想,故退而使用按键精灵)
-
-- 安装按键精灵android到手机或模拟器上
-- 安装按键精灵手机版到电脑上
-- 新建一个脚本
-- 将[ajjl-script](android/ajjl-script) 复制粘贴进去,**记得将ip换成自己机器的ip**
-- 点击`调试`按钮 应该看到 log : `get result failure or result action is empty`
+- 方案二 - 使用按键精灵
+  - curl : copy `curl`到你的手机或模拟器的`/sdcard`(即sd卡)去
+  - 安装按键精灵android到手机或模拟器上
+  - 安装按键精灵手机版到电脑上
+  - 新建一个脚本
+  - 将[ajjl-script](doc/ajjl-script) 复制粘贴进去,**记得将ip换成自己机器的ip**
+  - 点击`调试`按钮 应该看到 log : `get result failure or result action is empty`
 
 ### 安装python3.6
 
 - 推荐:[andconda](https://www.anaconda.com/wnload/)
 - 安装openvc 执行命令 `pip install opencv-python`
 - 安装[jep](https://github.com/ninia/jep) : `pip install jep`
-- wind 用户将`<andconda 安装目录>\Lib\site-packages\jep` 添加到环境变量中去
+- win 用户将`<andconda 安装目录>\Lib\site-packages\jep` 添加到环境变量中去
 - 如果在不记得andconda的安装目录的话,可以在C盘搜索 `Anaconda3` 说不定能找到)
 
 
