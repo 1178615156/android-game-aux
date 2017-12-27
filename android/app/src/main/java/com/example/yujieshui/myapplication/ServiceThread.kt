@@ -48,7 +48,6 @@ class ServiceThread(val ip: String, val port: String) : Thread() {
         return
       } catch (e: Exception) {
         e.printStackTrace()
-        return
         try {
           Thread.sleep(1000)
         } catch (e: Exception) {
