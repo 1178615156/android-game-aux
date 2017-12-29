@@ -98,13 +98,13 @@ object Points {
   }
 
   object Explore {
-    val getPrize = Point(788, 448)
-
-
-    object Node {
+    object Map {
       val one   = Point(229, 441, "1")
       val two   = Point(480, 439, "2")
       val three = Point(753, 434, "3")
+    }
+    object OneThreeDirect{
+
     }
 
   }

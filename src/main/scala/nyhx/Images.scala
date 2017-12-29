@@ -38,6 +38,15 @@ object Images {
     val six   = image("area-six.png")
   }
 
+  object Explore {
+    val explore       = image("explore")
+    val complete      = image("explore-complete")
+    val settlement    = image("explore-settlement")
+    val earnReward    = image("explore-earn-reward")
+    val exitAdventure = image("explore-exit-adventure")
+    val getPrize      = image("explore-get-prize")
+  }
+
   object Adventure {
     val needSurvey = image("need-survey.png")
 
@@ -63,6 +72,7 @@ object Images {
     val reward      = image("tx-reward.png")
     val group       = image("tx-group.png")
     val result      = image("tx-result.png")
+    val reset       = image("tx-reset")
 
     val _1  = image("tx-1.png")
     val _2  = image("tx-2.png")
@@ -81,48 +91,13 @@ object Images {
     val _15 = image("tx-15.png")
   }
 
-  //  val gakuen    = image("xue-yuang.png")
-  //  val room      = image("fang-jiang.png")
-  //  val returns   = image("fanghui.png")
-  //  val closeX    = image("X")
-  //  val determine = image("determine")
-  //  val start     = image("Attachment:start.png|Attachment:start-1.png")
-  //
-  //  val icon_huPoZiQuan = image("icon-hpzq.png")
-  //
-  //
-  //  object Treatment {
-  //    val selectTreatment     = image("选择治疗1")
-  //    val resourceComsumption = image("Attachment:zi-yuan-xiao-hao.png")
-  //  }
-  //
-  //  object WuDouJi {
-  //    val wuDouJi       = image("武斗祭.png")
-  //    val shenShen      = image("武斗祭-神圣")
-  //    val piPeiZhanDou  = image("武斗祭-匹配战斗.png")
-  //    val zhanDouJieGoo = image("武斗祭-战斗结果.png")
-  //  }
-  //
-  //  object Adventure {
-  //    val adventure = image("adventure.png")
-  //    val start     = ImagePaths.start
-  //    val bianZu    = image("adventure-grouping.png")
-  //    val node      = image("节点.png")
-  //    val selectA   = image("选择A.png")
-  //
-  //    val zongHuiHe = image("adventure-total-turn.png")
-  //    val mpEmpty   = image("adventure-mp-empty.png")
-  //  }
-  //
-  //  object Explore {
-  //    val explore    = image("explore")
-  //    val complete   = image("explore-complete")
-  //    val settlement = image("explore-settlement")
-  //
-  //    val earnReward    = image("earn-reward")
-  //    val exitAdventrue = image("explore-exit-adventrue")
-  //
-  //  }
+  def image(s: String) = {
+    val fileName = Some(s)
+      .map(e => if(e.endsWith(".png")) e else s"$e.png")
+      .map(e => if(e.startsWith("images-")) e else s"images-goal/$e")
+      .get
 
-  def image(s: String) = models.Image(File(s"images-goal/$s").pathAsString)
+    require(File(fileName).exists, fileName + " is not exists")
+    models.Image(File(fileName).pathAsString)
+  }
 }

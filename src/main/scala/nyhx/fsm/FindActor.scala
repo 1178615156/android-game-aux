@@ -79,17 +79,21 @@ class FindActor[T<:FindPicBuild.Goal](status: FindActor.Status,
     case Event(c: ClientRequest, MustFind) =>
       val goal = findPicBuild.values.map(_.goal.get.simpleName)
       findPicBuild.run(c) match {
-        case NoFindPic()      => goto(FailureNoFind).replying(Commands())
-        case IsFindPic(point) =>
-          logger.info(s"($goal) is find; touch")
+        case x@NoFindPic()      =>
+          logger.info(s"($goal) no find;  sim:${x.sim}")
+          goto(FailureNoFind).replying(Commands())
+        case x@IsFindPic(point) =>
+          logger.info(s"($goal) is find; touch : sim:${x.sim}")
           goto(Success).replying(Commands().tap(point))
       }
     case Event(c: ClientRequest, IfFind)   =>
       val goal = findPicBuild.values.map(_.goal.get.simpleName)
       findPicBuild.run(c) match {
-        case NoFindPic()      => goto(Success).replying(Commands())
-        case IsFindPic(point) =>
-          logger.info(s"($goal) is find; touch")
+        case x@NoFindPic()      =>
+          logger.info(s"($goal) no find;  sim:${x.sim}")
+          goto(Success).replying(Commands())
+        case x@IsFindPic(point) =>
+          logger.info(s"($goal) is find; touch : sim:${x.sim}")
           goto(Success).replying(Commands().tap(point))
       }
     case Event(c: ClientRequest, _)        =>

@@ -48,4 +48,18 @@ object ScenesActor {
       })
   })
 
+  def goToAdventure() = SeqenceActor(
+    ScenesActor.returns,
+    ScenesActor.goToRoom,
+    FindActor.touch(Find(Images.Adventure.adventure)),
+    FindActor.waitIsFind(Find(Images.Adventure.grouping)),
+  )
+
+  def goToExport() = SeqenceActor(
+    returns,
+    goToRoom,
+    FindActor.touch(Find(Images.Explore.explore)),
+    FindActor.waitIsFind(Find(Images.returns)),
+  )
+
 }

@@ -27,6 +27,7 @@ object WarHelper {
   }
 
   def warReady() = SeqenceActor(
+    FindActor.waitIsFind(Find(Images.Adventure.grouping)),
     FindActor.touch(Find(Images.Adventure.grouping)),
     checkMpEmpty(),
     FindActor.keepTouch(Find(Images.start))

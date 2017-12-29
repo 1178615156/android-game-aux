@@ -17,6 +17,8 @@ object ClientActor {
 
   object Tx extends Status
 
+  object Export extends Status
+
   type Data = BaseData
 
 
@@ -31,14 +33,14 @@ class ClientActor(args: Seq[String]) extends FSM[Status, Data] with FsmHelper[St
   val logger = LoggerFactory.getLogger("client-actor")
   val warNum = 100
 
-  def contains(s: String) = args.contains(s.trim)
 
   val map = {
+    //default value
     val map: Map[Status, Props] = Map(
-      //default value
-//      War -> nyhx.fsm.WarSixActor.four_b(warNum),
-      War -> nyhx.fsm.WarTowActor.tow_b(warNum),
+      War -> nyhx.fsm.WarSixActor.four_b(warNum),
+      //      War -> nyhx.fsm.WarTowActor.tow_b(warNum),
       Dismissed -> Props(new nyhx.fsm.DismissedActor),
+      Export -> Props(new ExportGetRewardActor(Points.Area.one)),
       Tx -> Props(new TeXunActor()),
       Wdj -> Props(new WdjActor(warNum))
     )
@@ -54,6 +56,7 @@ class ClientActor(args: Seq[String]) extends FSM[Status, Data] with FsmHelper[St
     }
   }
 
+  def contains(s: String) = args.contains(s.trim)
   if(contains("tx"))
     startWith(Tx, actorOf(map(Tx)))
   else if(contains("wdj"))
@@ -61,10 +64,11 @@ class ClientActor(args: Seq[String]) extends FSM[Status, Data] with FsmHelper[St
   else
     startWith(War, actorOf(map(War)))
 
-//  startWith(War, actorOf(map(War)))
+  //  startWith(War, actorOf(map(War)))
   //  startWith(Wdj, actorOf(map(Wdj)))
-    startWith(Tx, actorOf(map(Tx)))
+  startWith(Export, actorOf(map(Export)))
   //  startWith(Dismissed, map(Dismissed)())
+  when(Export)(work(nextStatus =  goto(War).using(actorOf(map(War)))))
   when(War)(work(nextStatus = goto(Dismissed).using(actorOf(map(Dismissed)))))
   when(Dismissed)(work(nextStatus = goto(War).using(actorOf(map(War)))))
   when(Tx)(work(nextStatus = goto(War).using(actorOf(map(War)))))
