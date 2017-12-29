@@ -64,9 +64,9 @@ object Points {
     object Two {
 
       object One {
-        val c = Point(162,373)
-        val f = Point(655,405)
-        val g = Point(826,465)
+        val c = Point(162, 373)
+        val f = Point(655, 405)
+        val g = Point(826, 465)
       }
 
       object Six {
@@ -98,13 +98,35 @@ object Points {
   }
 
   object Explore {
+
     object Map {
       val one   = Point(229, 441, "1")
       val two   = Point(480, 439, "2")
       val three = Point(753, 434, "3")
     }
-    object OneThreeDirect{
 
+    object OneThreeDirect {
+      val one   = Point(453, 168)
+      val two   = Point(784, 417)
+      val three = Point(136, 258)
+    }
+
+    object ThreeThreeDirect {
+      val one   = Point(359, 450, "one  ")
+      val two   = Point(388, 228, "two  ")
+      val three = Point(824, 117, "three")
+    }
+
+    object FourThreeDirect {
+      val one   = Point(232, 160, "one  ")
+      val two   = Point(502, 406, "two  ")
+      val three = Point(666, 227, "three")
+    }
+
+    object FiveThreeDirect {
+      val one   = Point(782, 119, "one  ")
+      val two   = Point(602, 269, "two  ")
+      val three = Point(449, 411, "three")
     }
 
   }

@@ -21,9 +21,7 @@ class ExportGetRewardActor(area: Point) extends FSM[BaseStatus, BaseData]
 
   val logger = LoggerFactory.getLogger("export-get-reward")
 
-  startWith(GotoArea, context.actorOf(SeqenceActor(
-//    ScenesActor.goToExport(),
-    JustActor.justTap(area))))
+  startWith(GotoArea, context.actorOf(SeqenceActor(JustActor.justTap(area))))
   when(GotoArea)(work(nextStatus = goto(Settlement).using(NoData)))
   when(Settlement) {
     case Event(c: ClientRequest, _) =>
@@ -54,10 +52,112 @@ class ExportGetRewardActor(area: Point) extends FSM[BaseStatus, BaseData]
   onTransition(onFinish(Finish))
 }
 
-class ExportActor {
+object ExportActor {
+
+
   val exportList = List(
-    //    ExportTask(Points.Group.b,Points.Area.one,)
+    ExportTask(
+      Points.Group.b,
+      Points.Area.one,
+      Points.Explore.Map.three, Some(Points.Explore.OneThreeDirect.one)),
+    ExportTask(
+      Points.Group.c,
+      Points.Area.three,
+      Points.Explore.Map.three, Some(Points.Explore.ThreeThreeDirect.two)),
+    ExportTask(
+      Points.Group.d,
+      Points.Area.four,
+      Points.Explore.Map.three, Some(Points.Explore.FourThreeDirect.two)),
+    ExportTask(
+      Points.Group.e,
+      Points.Area.five,
+      Points.Explore.Map.three, Some(Points.Explore.FiveThreeDirect.two)),
   )
-  ScenesActor.goToExport()
+
+  def run() = SeqenceActor(
+    ScenesActor.goToExport() +: exportList.map(e => Props(new ExportActor(e))): _*)
 
 }
+
+class ExportActor(task: ExportTask)
+  extends FSM[BaseStatus, BaseData]
+    with FsmHelper[BaseStatus, BaseData] {
+
+  object GetReward extends BaseStatus
+
+  object Check extends BaseStatus
+
+  object CloseX extends BaseStatus
+
+  object StartExport extends BaseStatus
+
+  val logger = LoggerFactory.getLogger("export")
+
+  def getReward = SeqenceActor(
+    Props(new ExportGetRewardActor(task.area)),
+    JustActor.justTap(task.map)
+  )
+
+  def closeX = FindActor.keepTouch(Find(Images.x))
+
+  def startExport = SeqenceActor(
+    task.direct
+      .map(JustActor.justTap)
+      .getOrElse(JustActor.justDelay(0)),
+    FindActor.waitIsFind(Find(Images.start)),
+    JustActor.justTap(task.group),
+    FindActor.touch(Find(Images.start))
+  )
+
+  startWith(GetReward, context.actorOf(getReward))
+  when(GetReward)(work(nextStatus = goto(Check).using(NoData)))
+  when(Check) {
+    case Event(c: ClientRequest, _) =>
+      Find(Images.Explore.exitAdventure).run(c) match {
+        case IsFindPic(_) =>
+          logger.info("task no finish")
+          val x = Find(Images.x).run(c).point
+          Build.goto(CloseX)
+            .using(context.actorOf(closeX))
+            .replying(Commands())
+            .build()
+        case NoFindPic()  =>
+          Build
+            .goto(StartExport)
+            .using(context.actorOf(startExport))
+            .replying(Commands())
+            .build()
+      }
+  }
+  when(CloseX)(work(nextStatus = goto(Finish)))
+  when(StartExport)(work(nextStatus = goto(Finish)))
+  when(Finish)(finish)
+  onTransition(onFinish(Finish))
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

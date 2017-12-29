@@ -9,7 +9,7 @@ object Images {
   val start          = image("start.png")
   val start2         = image("start-2.png")
   val determine      = image("determine.png")
-
+  val x = image("X")
   object YuanZiWu {
     val yuanZiWu           = image("yzw.png")
     val dismissed          = image("yzw-dismissed.png")
