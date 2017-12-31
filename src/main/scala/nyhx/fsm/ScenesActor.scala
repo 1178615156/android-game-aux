@@ -14,11 +14,15 @@ object ScenesActor {
   def returns =
     Props(new MyFsmAct {
       exec(c =>
-        Find(Images.returns).run(c) match {
-          case IsFindPic(point) =>
+
+        Find(Images.returns).run(c) -> Find(Images.determine).run(c) match {
+          case (_, IsFindPic(point))      =>
+            log.info("in return find determine -> tap it ")
+            Build.stay().replying(Commands().tap(point).delay(2500)).build()
+          case (IsFindPic(point), _)      =>
             log.info("find return -> tap it ")
             Build.stay().replying(Commands().tap(point).delay(2500)).build()
-          case NoFindPic()      =>
+          case (NoFindPic(), NoFindPic()) =>
             log.info("[finish] no find return ")
             Build.goto(Finish).replying(Commands()).build()
         })

@@ -31,7 +31,7 @@ class ClientActor(args: Seq[String]) extends FSM[Status, Data] with FsmHelper[St
   import context.actorOf
 
   val logger = LoggerFactory.getLogger("client-actor")
-  val warNum = 40
+  val warNum = 30
 
 
   val map = {
@@ -66,12 +66,12 @@ class ClientActor(args: Seq[String]) extends FSM[Status, Data] with FsmHelper[St
     startWith(War, actorOf(map(War)))
 
     startWith(Tx, actorOf(map(Tx)))
-  //  startWith(War, actorOf(map(War)))
-  //  startWith(Wdj, actorOf(map(Wdj)))
-  //  startWith(Export, actorOf(map(Export)))
-  //  startWith(Dismissed, map(Dismissed)())
+//    startWith(War, actorOf(map(War)))
+//    startWith(Wdj, actorOf(map(Wdj)))
+//    startWith(Export, actorOf(map(Export)))
+//    startWith(Dismissed, actorOf(map(Dismissed)))
   when(Export)(work(nextStatus = goto(War).using(actorOf(map(War)))))
-  when(War)(work(nextStatus = goto(Export).using(actorOf(map(Export)))))
+  when(War)(work(nextStatus = goto(Dismissed).using(actorOf(map(Dismissed)))))
   when(Dismissed)(work(nextStatus = goto(War).using(actorOf(map(War)))))
   when(Tx)(work(nextStatus = goto(War).using(actorOf(map(War)))))
   when(Wdj)(work(nextStatus = goto(War).using(actorOf(map(War)))))

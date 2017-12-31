@@ -92,7 +92,7 @@ class DismissedActor extends FSM[Status, Data] with FsmHelper[Status, Data] {
   }
   when(Determine)(work(nextStatus = goto(SelectStudent).using(dismissedSelectActor())))
   when(Finish)(finish)
-  onTransition (onFinish(Finish))
+  onTransition(onFinish(Finish))
 }
 
 class DismissedSelectActor extends FSM[Status, Data] with FsmHelper[Status, Data] {
@@ -105,12 +105,12 @@ class DismissedSelectActor extends FSM[Status, Data] with FsmHelper[Status, Data
   def touchRetrieve() = context actorOf SeqenceActor(
     FindActor.waitOf(IsFind, Find(Images.Retrieve.retrieve)),
     FindActor.touch(Find(Images.Retrieve.retrieve)),
-
-    FindActor.waitOf(IsFind, Find(Images.Retrieve.an)),
-    FindActor.touch(Find(Images.Retrieve.an)),
-
-    FindActor.waitOf(IsFind, Find(Images.Retrieve.shui)),
-    FindActor.touch(Find(Images.Retrieve.shui))
+//
+//    FindActor.waitOf(IsFind, Find(Images.Retrieve.an)),
+//    FindActor.touch(Find(Images.Retrieve.an)),
+//
+//    FindActor.waitOf(IsFind, Find(Images.Retrieve.shui)),
+//    FindActor.touch(Find(Images.Retrieve.shui))
   )
 
   startWith(TouchSelect, touchSelect())
@@ -125,7 +125,11 @@ class DismissedSelectActor extends FSM[Status, Data] with FsmHelper[Status, Data
   }
   when(TapStudent) {
     case Event(c: ClientRequest, _) =>
-      val points = 0 to 4 map (_ * 150 + 65) map (x => Point(x, 179))
+      val points = for {
+        x <- 0 to 5 map (_ * 130 + 65)
+        y <- List(179, 350)
+      } yield
+        Point(x, y)
       val commands = points.foldLeft(Commands())((l, r) =>
         l.tap(r).delay(500)
       )
@@ -133,7 +137,7 @@ class DismissedSelectActor extends FSM[Status, Data] with FsmHelper[Status, Data
   }
 
   when(Finish)(finish)
-  onTransition (onFinish(Finish))
+  onTransition(onFinish(Finish))
 }
 
 
