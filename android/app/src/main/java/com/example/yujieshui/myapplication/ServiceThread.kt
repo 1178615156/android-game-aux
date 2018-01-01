@@ -22,8 +22,8 @@ class ServiceThread(val ip: String, val port: String) : Thread() {
 //    StrictMode.setThreadPolicy(StrictMode.ThreadPolicy.Builder().detectDiskReads().detectDiskWrites().detectNetwork().penaltyLog().build())
     while (!this.isInterrupted) {
       try {
-        val fileName = "/sdcard/tmp/screen-${System.currentTimeMillis()}.png"
-//        val fileName = "/sdcard/tmp/screen.png"
+//        val fileName = "/sdcard/tmp/screen-${System.currentTimeMillis()}.png"
+        val fileName = "/sdcard/screen.png"
         HelpFunc.screencap(fileName)
         val file = File(fileName)
         Log.w("LogDemo", "screen size : " + file.length().toString())
