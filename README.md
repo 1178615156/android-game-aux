@@ -44,9 +44,14 @@
   - 将[ajjl-script](doc/ajjl-script) 复制粘贴进去,**记得将ip换成自己机器的ip**
   - 点击`调试`按钮 应该看到 log : `get result failure or result action is empty`
 
-### 安装python3.6
-
-- 推荐:[andconda](https://www.anaconda.com/wnload/)
+### python
+- 方案一
+  - 推荐:[andconda](https://www.anaconda.com/wnload/)
+- 方案二
+  - 下载python3.6并安装 
+  - `pip install numpy`
+  - `pip install pandas`
+- ---分割线---
 - 安装openvc 执行命令 `pip install opencv-python`
 - 安装[jep](https://github.com/ninia/jep) : `pip install jep`
 - win 用户将`<andconda 安装目录>\Lib\site-packages\jep` 添加到环境变量中去

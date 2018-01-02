@@ -4,9 +4,12 @@ import akka.actor.{Actor, ActorRef, FSM, Props}
 import models.{ClientRequest, Commands, Point}
 
 
-
 trait FsmHelper[S, D] {
   this: FSM[S, D] =>
+
+  def of(props: Props, name: String): ActorRef = context.actorOf(props, name.replace(" ","-"))
+
+  def of(props: Props): ActorRef = context.actorOf(props)
 
   class Build[A](private val state: State) {
     def replying(commands: Commands) =
@@ -57,8 +60,9 @@ trait FsmHelper[S, D] {
       log.warning("dismiss select actor finish")
       stay()
   }
-  def onFinish(F:S) :TransitionHandler={
-    case x -> F  =>
+
+  def onFinish(F: S): TransitionHandler = {
+    case x -> F =>
       context.parent ! TaskFinish
   }
 }

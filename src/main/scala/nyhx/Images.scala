@@ -9,7 +9,8 @@ object Images {
   val start          = image("start.png")
   val start2         = image("start-2.png")
   val determine      = image("determine.png")
-  val x = image("X")
+  val x              = image("X")
+
   object YuanZiWu {
     val yuanZiWu           = image("yzw.png")
     val dismissed          = image("yzw-dismissed.png")
@@ -45,6 +46,7 @@ object Images {
     val earnReward    = image("explore-earn-reward")
     val exitAdventure = image("explore-exit-adventure")
     val getPrize      = image("explore-get-prize")
+    val goalPoint     = image("explore-goal-point")
   }
 
   object Adventure {

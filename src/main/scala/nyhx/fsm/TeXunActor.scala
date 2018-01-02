@@ -64,15 +64,12 @@ class TeXunActor() extends FSM[BaseStatus, BaseData] with FsmHelper[BaseStatus, 
         val l = List(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15)
 
         val ll = l.map(e => Find.build(e).map(_.withThreshold(0.7)).run(c))
+        logger.info(ll.zipWithIndex.map { case (v, i) => (i + 1) -> v.similarity }.toString())
 
         val min = ll.minBy(_.similarity).similarity
         val minIndex = ll.indexWhere(_.similarity == min)
-        logger.info(ll.zipWithIndex.map { case (v, i) => (i + 1) -> v.similarity }.toString())
         if(minIndex == ll.length - 1)
           None
-//        else if(ll.forall(_.similarity > 0.7)) {
-//          logger.info("war point 2 ")
-//          Some(ll.head)
         else {
           logger.info(s"war point : ${minIndex + 2} -> ${ll(minIndex+1).similarity}")
           Some(ll(minIndex + 1))

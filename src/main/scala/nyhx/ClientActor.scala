@@ -37,8 +37,8 @@ class ClientActor(args: Seq[String]) extends FSM[Status, Data] with FsmHelper[St
   val map = {
     //default value
     val map: Map[Status, Props] = Map(
-      //      War -> nyhx.fsm.WarTowActor.tow_b(warNum),
-      War -> WarSixActor.four_b(warNum),
+            War -> nyhx.fsm.WarTowActor.tow_b(warNum),
+//      War -> WarSixActor.four_b(warNum),
       Dismissed -> Props(new fsm.DismissedActor),
       Export -> ExportActor.run(),
       Tx -> Props(new TeXunActor()),

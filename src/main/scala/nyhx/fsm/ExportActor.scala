@@ -64,6 +64,8 @@ class ExportActor(task: ExportTask)
 
   object GetReward extends BaseStatus
 
+  object GotoMap extends BaseStatus
+
   object Check extends BaseStatus
 
   object CloseX extends BaseStatus
@@ -74,11 +76,14 @@ class ExportActor(task: ExportTask)
 
   def getReward = SeqenceActor(
     Props(new ExportGetRewardActor(task.area)),
-    JustActor.justTap(task.map),
-    JustActor.justDelay(1500)
+    //    JustActor.justTap(task.map),
+    //    JustActor.justDelay(3000)
   )
 
-  def closeX = FindActor.keepTouch(Find(Images.x))
+  def closeX = SeqenceActor(
+    FindActor.keepTouch(Find(Images.x)),
+    FindActor.waitIsFind(Find(Images.returns))
+  )
 
   def startExport = SeqenceActor(
     task.direct
@@ -89,42 +94,57 @@ class ExportActor(task: ExportTask)
     FindActor.touch(Find(Images.start))
   )
 
-  startWith(GetReward, context.actorOf(getReward))
-  when(GetReward)(work(nextStatus = goto(Check).using(NoData)))
+  def gotoMap = SeqenceActor(
+    JustActor.justTap(task.map),
+    FindActor.waitIsFind(Find(Images.Explore.goalPoint).map(_.withThreshold(0.85)) or Find(Images.x))
+  )
+
+  startWith(GetReward, of(getReward, "get reward"))
+  when(GetReward)(work(nextStatus = goto(GotoMap).using(of(gotoMap, "go to map"))))
+  when(GotoMap)(work(nextStatus = goto(Check).using(NoData)))
   when(Check) {
     case Event(c: ClientRequest, _) =>
-      Find(Images.Explore.exitAdventure).run(c) match {
+      val x = Find(Images.x).run(c)
+      val ea = Find(Images.Explore.exitAdventure).run(c)
+      ea match {
         case IsFindPic(_) =>
-          logger.info("task no finish")
-          val x = Find(Images.x).run(c).point
-          Build.goto(CloseX)
+          logger.info("exitAdventure:find")
+          Build.goto(Finish)
             .using(context.actorOf(closeX))
-//            .replying(Commands())
-            .replying(Commands().delay(1000).tap(x).delay(2000))
+            .replying(Commands().delay(1000).tap(x.point).delay(2000))
             .build()
-//          Build
-//            .goto(StartExport)
-//            .using(context.actorOf(startExport))
-//            .replying(Commands().delay(1000).tap(x).delay(2000))
-//            .build()
         case NoFindPic()  =>
+          logger.info(s"exitAdventure:no find")
           Build
             .goto(StartExport)
             .using(context.actorOf(startExport))
             .replying(Commands())
             .build()
       }
+    //      (r -> ea) match {
+    //        case (x@IsFindPic(_), x1@NoFindPic()) =>
+    //          logger.info(s"exitAdventure:no find(${x1.sim}) return: is find (${x.sim})")
+    //          Build
+    //            .goto(StartExport)
+    //            .using(context.actorOf(startExport))
+    //            .replying(Commands())
+    //            .build()
+    //        case (NoFindPic(), IsFindPic(_))      =>
+    //          logger.info("exitAdventure:find")
+    //          Build.goto(Finish)
+    //            .using(context.actorOf(closeX))
+    //            .replying(Commands().delay(1000).tap(x.point).delay(2000))
+    //            .build()
+    //        case (NoFindPic(), NoFindPic())       =>
+    //          logger.info("exitAdventure:no find ; return :no find")
+    //          Build.stay().replying(Commands()).build()
+    //      }
   }
   when(CloseX)(work(nextStatus = goto(Finish)))
   when(StartExport)(work(nextStatus = goto(Finish)))
   when(Finish)(finish)
   onTransition(onFinish(Finish))
 }
-
-
-
-
-
 
 
 object ExportActor {
