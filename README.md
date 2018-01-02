@@ -294,15 +294,16 @@ class ClientActor() extends Actor {
 
 定义大致如下
 ```scala
+// image 是手机端截取的屏幕图片
 case class ClientRequest(image: Image)
 
 trait Command
 case class TapCommand(x: Int, y: Int, action: String = "tap") extends Command
 case class DelayCommand(time: Int, action: String = "delay") extends Command
 case class Commands(seq: Command*)
-
 ```
-好准备完成,让我们确定需求先,战斗流程大致如下
+
+让我们确定需求先,战斗流程大致如下
 - 先点击`冒险`
 - 在选择目标地图
 - 调整队伍 -> 点击开始
@@ -324,288 +325,26 @@ if (status is finish touch adventure ) and (find goal map) then
 else 
   ???
 if find ....
+
+
 ```
-不行恶心死我了,即繁琐又容易出错,还是让我们另寻她路  
+不行恶心死了,即繁琐又容易出错,还是让我们另寻她路  
 有没有什么办法让`Actor`自己记住`status`而不用我们手动更新和判断,翻翻文档...翻...翻...翻;找到了  
 有`become/unbecome` 和 `FSM` ; 扔个硬币是正面,让我们用`become`实现  
 
-```scala
-def goToAdventure = {
-  case ClientRequest(image) =>
-  val result = FindPicBuild().withGoal(Images.adventure).withOrinal(image).run()
-  result match {
-    case IsFindPic(point) => 
-      sender() ! Commands().addTap(point)
-      become(selectGoalMap)
-    case NoFindPic() => 
-      ???
-  }
-}
-def selectGoalMap = ???
-```
-好一切完美运行让我们大肝出奇迹,肝完这一切.....   
-
-...我才不肝呢,`become`来`become`去,这不正是goto指令么,复杂的`become`可以让我们失去对代码的控制权,
-而且也没法保证没个行动都有正常跳用 `sender() ! ...`;而且就算调用了,也可能发错消息了.还是让我们想想这么避免上述的问题吧;  
-整理问题如下: 
-- 不能让每个函数都能执行`become`我们需要统一集中化对流程的控制
-- 每个函数都应该返回`Commands`
-
-让我们回想一下著名的三定律之一:**所有的问题都能通过增加间接层解决,除了**
-
-好让我们增加一层间接层
-
-```scala
-sealed trait Result {
-  def commands: Commands
-}
-object Result {
-  case class Success(commands: Commands = Commands()) extends Result
-  case class Execution(commands: Commands) extends Result
-  case class Failure(exception: Exception) extends Result  {
-    override def commands: Commands = throw exception
-  }
-}
-
-trait RecAction extends (ClientRequest => Result)
-
-```
-每个动作`RecAction`都应该返回`Result`,这下不会有谁没返回,或者返回错了信息  
-那么这么控制流程呢,不用`become`的话 那就在加一层;  
-```scala
-trait Action {
-  def name = ""
-}
-
-object Action {
-  implicit def rec2action(rec: RecAction): Rec = Rec(rec)
-  implicit def sequ2action(sequence: Sequence): Sequ = Sequ(sequence)
-
-  case class Rec(recAction: RecAction) extends Action
-  case class Sequ(sequence: Sequence) extends Action
-
-}
-
-trait Patten
-object Patten {
-  case class Next(action: Action) extends Patten
-}
-
-case class Sequence(name: String, actions: Seq[Patten] = Nil){
-  def next(recAction: Action) = Sequence(name, actions :+ Patten.Next(recAction))
-
-  val isEnd = actions.isEmpty
-  def head = actions.head
-  def tail = actions.tail
-}
-```
-定义个`Sequence` 模型,只能线性一个接一个的执行;示例:  
-```
-val a = RecAction(if find pic A then touch it)
-val b = RecAction(if no find pic B then touch it )
-val c = RecAction(if find pic C then return)
-val sequence = (Sequence()
-  next a 
-  next (Sequence()
-    next b 
-    next c 
-  )
-)
-```
-如果将`sequence`展开的话就是 `a next b next c` 你会发现这还是线性执行;这也是为什么`Action` 有 `Rec` 和 `Sequ` 两个模式的原因;  
-既然有`Sequence`我们需要`run`;那么`run`需要哪些参数才能运行么?
-- 首先需要 `sequence:Sequenc` 
-- 然后应该需要个 `clientRequest:ClientRequest`才可以提供给`RecAction`运行
-- 还应该需要个 `sender`才可以将`RecAction`返回的`Commands`发送回去
-
-那么返回值什么呢;嗯,`run` 应该只执行第一个`Action`,那么剩下的未执行的`Action`怎么办呢,可以将它返回回去不做处理
-
-所以`run`的声明应该如下:
-```scala
-def run(sequence: Sequence)(clientRequest: ClientRequest, sender: ActorRef): Sequence
-```
-
-好了到了实现了:
-```scala
-def execRecAction(recAction: RecAction) = recAction(clientRequest) match {
-  //如果失败了,那就失败了
-  case Result.Failure(x)   => throw x
-  //如果是Execution,我们会继续执行这个action直到success为止
-  //感觉名字叫做`continue` 会更易懂,
-  case Result.Execution(x) =>
-    sender ! x
-    Some(recAction)
-  //完事,准备执行下一条指令
-  case Result.Success(x)   =>
-    sender ! x
-    None
-}
-```
-
-
-```scala
-//定义两个辅助函数
-def runByRec(action: RecAction) = {
-  val result = execRecAction(action)
-  result match {
-    case Some(x) => Sequence(sequence.name, Patten.Next(x) +: sequence.tail)
-    case None    => Sequence(sequence.name, sequence.tail)
-  }
-}
-def runBySequence(sequ: Sequence) = {
-  val result = run(sequ)(clientRequest, sender)
-  if(result.isEnd)
-    Sequence(sequence.name, sequence.tail)
-  else
-    Sequence(sequence.name, Patten.Next(result) +: sequence.tail)
-}
-//主体
-val action = sequence.head
-action match {
-  case Next(Action.Rec(action)) => runByRec(action)
-  case Next(Action.Sequ(sequ))  => runBySequence(sequ)
-}
-```
-[完整的代码](src/main/scala/nyhx/sequence/Sequence.scala)
-
-终于完成了
-
-让我们来实现WarAcotr吧
-
-例如看下`Images.returns`这张图片  
-![](images-goal/returns.png)
-
-定义一些辅助方法,我们要找的图片[完整代码](src/main/scala/nyhx/sequence/FindAux.scala)
-```scala
-object Find{
-  val returns           = find(Images.returns.toGoal)
-  val goToRoom          = find(Images.returns_room.toGoal)
-  val adventure         = find(Images.Adventure.adventure.toGoal)
-  val grouping          = find(Images.Adventure.grouping.toGoal)
-  val start             = find(Images.start.toGoal)
-
-  def find(image: GoalImage) = (clientRequest: ClientRequest) => FindPicBuild()
-    .withGoal(image.toGoal)
-    .withOriginal(clientRequest.image.toOriginal)
-}
-```
-
-以及两个拓展函数
-```scala
-implicit class FindAux (f: ClientRequest => FindPicBuild[FindPicBuild.Request]){
-
-  //常用的模式之一 if find then touch else ???
-  def touch = RecAction { implicit c => ???)
-  //常用的模式之一 if no find then continue else goto next
-  def waitFind = RecAction { implicit c =>???}
-}
-```
-这样这我们就能便捷的调用`Find.returns.touch`表示:找return这张image,如果找到这`touch`否则`error`
-
-来实现to go adventure ; 点击去冒险按钮,开始战斗
-```scala
-def goToAdventure = (Sequence("goToAdventure")
-  next touchReturns
-  next goToRoom
-  next Find.adventure.touch
-  next Find.grouping.waitFind
-  )
-```
-so easy;来做更多
-```scala
-  def warPoint_B = (Sequence()
-      next warReady
-      next warPoint(Point(199,199))
-      next warEnd
-      )
-
-  def warReady = (Sequence("warReady")
-    next Find.grouping.touch
-    next Find.start.touch
-    )
-
-  def warPoint(point: Point) = (Sequence()
-    next Find.navigateCondition.waitFind
-    next justTap(point, 2000)
-    next Find.start.waitFind
-    next Find.start.touch
-    next waitWarEnd
-    next sureWarReward
-    )
-
-  def warEnd = (Sequence("warEnd")
-    next Find.returns.waitFind
-    next Find.returns.touch
-    next Find.determine.waitFind
-    next Find.determine.touch
-    next Find.grouping.waitFind
-    )
-```
-终于完成了:::
-
-最后一步`receive`
-```scala
-  var sequences = Sequence() next gotoAdventure next warPoint_b 
-
-  override def receive: Receive = {
-    case c: ClientRequest =>
-      val result = Sequence.run(sequences)(c, sender())
-      sequences = result
-  }
-```
-
-在来点小改进,这样子就不需要`var`了
-```scala
-val sequences = Sequence() next gotoAdventure next warPoint_b 
-def rec(action: Sequence): PartialFunction[Any, Sequence] = PartialFunction { case c: ClientRequest =>
-    Sequence.run(action)(c, sender())
-  }
-
-def onRec(action: Sequence): Receive =
-    rec(action).andThen(action => context.become(onRec(action)))
-
-override def receive: Receive = onRec(sequences)
-
-```
-
 ---
 # FSM 
-在来看看FSM  [akka 的fsm 文档](http://jasonqu.github.io/akka-doc-cn/2.3.6/scala/book/chapter3/07_fsm.html)  
-目标->劝退:
-![dismissed](doc/dismissed.gif)
 
-看看伪代码
-```
-goto gruen
-touch yzw
-touch dismissed
-touch select student
-select student
-find determine
-if is find then
-  touch it
-  touch determine sure
-  goto select student
-else
-  return
-```
-不难发现,大致可以分成两个部分
-- 场景移动
-- 劝退逻辑
+现在要面对的是如何执行莫一个动作如:
+- 找到某张图片并点击
+- 等待莫张图片出现
+- ...
 
-首先实现场景移动  
-先定义一个辅助`FindActor`,有两种模式 
-- 找图并且点击
-- 等到莫图出现
 
-先定义`Status`
+恩,先想办法实现个Find and touch 
 ```scala
-trait BaseStatus
-trait BaseData
-object NoData extends BaseData
-
-object FindActor {
-  trait Status extends BaseStatus
+object FindActor{
+  trait Status 
 
   object Touch extends Status
 
@@ -614,32 +353,31 @@ object FindActor {
   object FailureNoFind extends Status
 
   object Success extends Status
+  
+  trait Data
+  object NoData extends Data
 }
-```
-
-好在来看看实现
-```scala
+import FindActor._
 class FindActor(status: FindActor.Status,
                 findPicBuild: ClientRequest => FindPicBuild[FindPicBuild.Request])
-              extends FSM[FindActor.Status, FindActor.Condition]{
+              extends FSM[FindActor.Status, Data]{
 
+  startWith(status,NoData)
   //当当前状态为Touch的时候
   when(Touch) {
     case Event(c: ClientRequest, _) =>
-      val goal = findPicBuild(c).goal.get.simpleName
       findPicBuild.run(c) match {
         case NoFindPic()      => 
           //如果没找到图片就 go to fail
           goto(FailureNoFind).replying(Commands())
         case IsFindPic(point) =>
-          logger.info(s"($goal) is find; touch")
           //找到了就goto success
           goto(Success).replying(Commands().tap(point))
       }
   }
 }
 ```
-恩,代码正常运行,...不过仔细思考一下就会发现许多问题
+恩,代码正常运行如果找到某图的话就点击,否则错误,...不过仔细思考一下就会发现许多问题
 - 如果每个find and touch 操作是一个actor 的话,那么别的操作是不是应该也由一个actor实现
 - 如果有多个 find and touch 那么就会有多个actor,该如何执行和控制呢
 - 回复 `Commands` 有哪个(调用者还是被跳用者)actor 执行呢
@@ -648,15 +386,15 @@ class FindActor(status: FindActor.Status,
 
 经过在下的深思熟虑作出如下约定
 - 任何操作尽可能地包装成actor
-- 定义一个`ExecWorkActor`执行多个顺序相连的actor
+- 定义一个`SeqenceActor`执行多个顺序相连的actor
 - 每当一个actor完成了任务之后会向父节点发送`TaskFinish`
 - 谁创建谁销毁
-- `Commands`的回复统一由被调用的actor执行回复
+- `Commands`的回复统一由被调用的actor执行回复 即最终的叶子节点的actor
 - 使用`Props`传递actor 动作
 
 好来看看`ExecWorkActor`功能很简单:
 ```scala
-class ExecWorkActor(val prosp: Seq[Props]) extends Actor {
+class SeqenceActor(val prosp: Seq[Props]) extends Actor {
   
   private var workSeq = prosp.map(context.actorOf)
   
@@ -672,7 +410,7 @@ class ExecWorkActor(val prosp: Seq[Props]) extends Actor {
   }
 }
 
-object ExecWorkActor {
+object SeqenceActor {
   def apply(seq: Props*): Props = Props(new ExecWorkActor(seq))
 }
 ```

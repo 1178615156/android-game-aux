@@ -34,7 +34,7 @@ class ClientActor(args: Seq[String]) extends FSM[Status, Data] with FsmHelper[St
   import context.actorOf
 
   val logger = LoggerFactory.getLogger("client-actor")
-  val warNum = 30
+  val warNum = 20
 
 
   val map = {

@@ -14,7 +14,6 @@ object ScenesActor {
   def returns =
     Props(new MyFsmAct {
       exec(c =>
-
         Find(Images.returns).run(c) -> Find(Images.determine).run(c) match {
           case (_, IsFindPic(point))      =>
             log.info("in return find determine -> tap it ")
