@@ -2,14 +2,13 @@ package nyhx.fsm
 
 import akka.actor.{Actor, ActorRef, FSM, Props}
 import models.{ClientRequest, Commands, Point}
+import utensil.macros.ActorOf
 
 
-trait FsmHelper[S, D] {
+trait FsmHelper[S, D] extends ActorOf{
   this: FSM[S, D] =>
 
   def of(props: Props, name: String): ActorRef = context.actorOf(props, name.replace(" ","-"))
-
-  def of(props: Props): ActorRef = context.actorOf(props)
 
   class Build[A](private val state: State) {
     def replying(commands: Commands) =

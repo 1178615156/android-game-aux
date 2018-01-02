@@ -112,21 +112,21 @@ object Points {
     }
 
     object ThreeThreeDirect {
-      val one   = Point(359, 450, "one  ")
-      val two   = Point(388, 228, "two  ")
-      val three = Point(824, 117, "three")
+      val one   = Point(359, 450, "one  ".trim)
+      val two   = Point(388, 228, "two  ".trim)
+      val three = Point(824, 117, "three".trim)
     }
 
     object FourThreeDirect {
-      val one   = Point(232, 160, "one  ")
-      val two   = Point(502, 406, "two  ")
-      val three = Point(666, 227, "three")
+      val one   = Point(232, 160, "one  ".trim)
+      val two   = Point(502, 406, "two  ".trim)
+      val three = Point(666, 227, "three".trim)
     }
 
     object FiveThreeDirect {
-      val one   = Point(782, 119, "one  ")
-      val two   = Point(602, 269, "two  ")
-      val three = Point(449, 411, "three")
+      val one   = Point(782, 119, "one  ".trim)
+      val two   = Point(602, 269, "two  ".trim)
+      val three = Point(449, 411, "three".trim)
     }
 
   }

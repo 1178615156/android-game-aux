@@ -15,4 +15,17 @@ libraryDependencies ++= (Nil
   ++ Libs.jep
   )
 
-enablePlugins(PackPlugin)
+def utensilSetting = Seq(
+  libraryDependencies ++= Libs.akka.actors,
+  libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value
+
+)
+
+
+lazy val `utensil-macros` = (project in file("./utensil-macros"))
+  .settings(utensilSetting)
+
+lazy val root = (project in file("./"))
+  .dependsOn(`utensil-macros`)
+  .aggregate(`utensil-macros`)
+  .enablePlugins(PackPlugin)

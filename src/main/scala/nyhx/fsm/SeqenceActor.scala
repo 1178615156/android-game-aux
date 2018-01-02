@@ -41,6 +41,21 @@ trait MyAct extends Actor {
 
 object SeqenceActor {
 
+  def of(props: (Props,String)*)=  Props(new MyAct {
+    private var workSeq = props.map{case (a,n)=>context.actorOf(a,n )}
+    context.become {
+      case c: ClientRequest =>
+        workSeq.head forward c
+
+      case TaskFinish =>
+        if(workSeq.tail.nonEmpty) {
+          workSeq = workSeq.tail
+        } else {
+          context.parent ! TaskFinish
+          context.become(Actor.emptyBehavior)
+        }
+    }
+  })
   def apply(props: Props*): Props = Props(new MyAct {
     private var workSeq = props.map(context.actorOf)
     context.become {

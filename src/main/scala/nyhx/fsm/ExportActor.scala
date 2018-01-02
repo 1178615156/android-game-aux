@@ -6,7 +6,9 @@ import nyhx.{Find, Images, Points}
 import org.slf4j.LoggerFactory
 import utensil.{IsFindPic, NoFindPic}
 
-case class ExportTask(group: Point, area: Point, map: Point, direct: Option[Point])
+case class ExportTask(group: Point, area: Point, map: Point, direct: Option[Point]) {
+  override def toString: String = s"${area.name}-${map.name}_group-${group.name}"
+}
 
 class ExportGetRewardActor(area: Point) extends FSM[BaseStatus, BaseData]
   with FsmHelper[BaseStatus, BaseData] {
@@ -74,11 +76,7 @@ class ExportActor(task: ExportTask)
 
   val logger = LoggerFactory.getLogger("export")
 
-  def getReward = SeqenceActor(
-    Props(new ExportGetRewardActor(task.area)),
-    //    JustActor.justTap(task.map),
-    //    JustActor.justDelay(3000)
-  )
+  def getReward = Props(new ExportGetRewardActor(task.area))
 
   def closeX = SeqenceActor(
     FindActor.keepTouch(Find(Images.x)),
@@ -99,8 +97,8 @@ class ExportActor(task: ExportTask)
     FindActor.waitIsFind(Find(Images.Explore.goalPoint).map(_.withThreshold(0.85)) or Find(Images.x))
   )
 
-  startWith(GetReward, of(getReward, "get reward"))
-  when(GetReward)(work(nextStatus = goto(GotoMap).using(of(gotoMap, "go to map"))))
+  startWith(GetReward, of(getReward))
+  when(GetReward)(work(nextStatus = goto(GotoMap).using(of(gotoMap))))
   when(GotoMap)(work(nextStatus = goto(Check).using(NoData)))
   when(Check) {
     case Event(c: ClientRequest, _) =>
@@ -108,37 +106,19 @@ class ExportActor(task: ExportTask)
       val ea = Find(Images.Explore.exitAdventure).run(c)
       ea match {
         case IsFindPic(_) =>
-          logger.info("exitAdventure:find")
+          log.info("exitAdventure:find")
           Build.goto(Finish)
-            .using(context.actorOf(closeX))
+            .using(of(closeX))
             .replying(Commands().delay(1000).tap(x.point).delay(2000))
             .build()
         case NoFindPic()  =>
-          logger.info(s"exitAdventure:no find")
+          log.info(s"exitAdventure:no find")
           Build
             .goto(StartExport)
-            .using(context.actorOf(startExport))
+            .using(of(startExport))
             .replying(Commands())
             .build()
       }
-    //      (r -> ea) match {
-    //        case (x@IsFindPic(_), x1@NoFindPic()) =>
-    //          logger.info(s"exitAdventure:no find(${x1.sim}) return: is find (${x.sim})")
-    //          Build
-    //            .goto(StartExport)
-    //            .using(context.actorOf(startExport))
-    //            .replying(Commands())
-    //            .build()
-    //        case (NoFindPic(), IsFindPic(_))      =>
-    //          logger.info("exitAdventure:find")
-    //          Build.goto(Finish)
-    //            .using(context.actorOf(closeX))
-    //            .replying(Commands().delay(1000).tap(x.point).delay(2000))
-    //            .build()
-    //        case (NoFindPic(), NoFindPic())       =>
-    //          logger.info("exitAdventure:no find ; return :no find")
-    //          Build.stay().replying(Commands()).build()
-    //      }
   }
   when(CloseX)(work(nextStatus = goto(Finish)))
   when(StartExport)(work(nextStatus = goto(Finish)))
@@ -169,8 +149,13 @@ object ExportActor {
       Points.Explore.Map.three, Some(Points.Explore.FiveThreeDirect.two)),
   )
 
-  def run() = SeqenceActor(
-    ScenesActor.goToExport() +: exportList.map(e => Props(new ExportActor(e))): _*)
+  def run() =
+    SeqenceActor.of(
+      (ScenesActor.goToExport() -> "goToExport") +: exportList.map(e => Props(new ExportActor(e)) -> e.toString): _*
+    )
+
+//  SeqenceActor(
+//    ScenesActor.goToExport() +: exportList.map(e => Props(new ExportActor(e))): _*)
 
 }
 

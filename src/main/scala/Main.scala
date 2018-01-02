@@ -7,7 +7,7 @@ object Main {
     implicit val akkaSource: AkkaSources = new AkkaSources {}
     import akkaSource._
 
-    val httpService = new HttpService(system.actorOf(Props(new ClientActor(args))))
+    val httpService = new HttpService(system.actorOf(Props(new ClientActor(args)),"nyhx"))
     httpService.http
   }
 }
