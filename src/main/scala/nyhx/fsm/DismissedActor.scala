@@ -131,7 +131,7 @@ class DismissedSelectActor extends FSM[Status, Data] with FsmHelper[Status, Data
       } yield
         Point(x, y)
       val commands = points.foldLeft(Commands())((l, r) =>
-        l.tap(r).delay(500)
+        l.tap(r).delay(100)
       )
       Build.goto(Finish).replying(commands).build()
   }
