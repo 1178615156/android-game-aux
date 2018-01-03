@@ -84,10 +84,10 @@ object WarHelper {
   })
 
   def waitWarEnd() = Props(new MyFsmAct {
-    exec(c => Find(Images.Adventure.totalTurn).run(c) match {
+    exec(c => (Find(Images.Adventure.totalTurn) or Find(Images.determine)).run(c) match {
       case IsFindPic(point) =>
         logger.info("war is end")
-        Build.goto(Finish).replying(Commands().delay(0)).build()
+        Build.goto(Finish).replying(Commands().tap(point).delay(0)).build()
       case NoFindPic()      =>
         logger.info("war no end")
         Build.stay().replying(Commands()).build()
