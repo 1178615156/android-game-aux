@@ -40,7 +40,8 @@ class ClientActor(args: Seq[String]) extends FSM[Status, Data] with FsmHelper[St
   val map = {
     //default value
     val map: Map[Status, Props] = Map(
-      War -> nyhx.fsm.WarTowActor.tow_b(warNum),
+//      War -> nyhx.fsm.WarTowActor.tow_b(warNum),
+      War -> nyhx.fsm.WarOneActor.four_boss(warNum),
       //      War -> WarSixActor.four_b(warNum),
       Dismissed -> Props(new fsm.DismissedActor),
       Export -> ExportActor.run(),
@@ -62,7 +63,7 @@ class ClientActor(args: Seq[String]) extends FSM[Status, Data] with FsmHelper[St
   def contains(s: String) = args.contains(s.trim)
 
   def run = ReplaceActor.apply(10, SeqenceActor.of(
-    //    map(Tx),
+//    map(Tx) -> "tx",
     map(Export) -> "export",
     map(War) -> "war",
     map(Dismissed) -> "dismissed"

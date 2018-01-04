@@ -28,4 +28,21 @@ object WarTowActor {
   )
 
 }
+object WarOneActor{
+  def four_boss(num:Int) = SeqenceActor(
+    WarHelper.goToAdventure(),
+    WarHelper.goToWarArea(Points.Area.one, 4),
+    ReplaceActor(num, SeqenceActor(
+      WarHelper.warReady(),
+      WarHelper.warPoint(Points.Adventure.One.Four.b),
+      WarHelper.warPoint(Points.Adventure.One.Four.c),
+      WarHelper.randomPoint(Points.Adventure.One.Four.f),
+      WarHelper.warPoint(Points.Adventure.One.Four.g),
+      WarHelper.warPoint(Points.Adventure.One.Four.boss),
+
+      JustActor.justDelay(2000)
+    ))
+  )
+}
+
 

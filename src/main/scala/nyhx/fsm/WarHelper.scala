@@ -43,6 +43,21 @@ object WarHelper {
     sureWarReward()
   )
 
+  def randomPoint(point: Point) = SeqenceActor(
+    FindActor.waitOf(FindActor.IsFind, Find(Images.Adventure.navigateCondition)),
+    tapWarPoint(point),
+    FindActor.waitIsFind(Find(Images.Adventure.selectA)),
+    FindActor.keepTouch(
+      Find(Images.Adventure.needSurvey).map(_.withThreshold(0.85)) or
+        Find(Images.Adventure.selectA)),
+    Props(new MyFsmAct {
+      exec(c => Find(Images.Adventure.navigateCondition).run(c) match {
+        case IsFindPic(point) => goto(Finish).replying(Commands().delay(0))
+        case NoFindPic()      => stay().replying(Commands().tap(Point(1, 1)))
+      })
+    })
+  )
+
   def warEarlyEnd() = SeqenceActor(
     FindActor.waitIsFind(Find(Images.returns)),
     FindActor.touch(Find(Images.returns)),

@@ -50,15 +50,14 @@ object Images {
   }
 
   object Adventure {
-    val needSurvey = image("need-survey.png")
-
     val start             = Images.start
+    val needSurvey        = image("adventure-need-survey.png")
     val adventure         = image("adventure.png")
     val grouping          = image("adventure-grouping.png")
     val totalTurn         = image("adventure-total-turn.png")
     val mpEmpty           = image("adventure-mp-empty.png")
     val navigateCondition = image("adventure-navigate-condition.png")
-    val selectA           = image("select-a.png")
+    val selectA           = image("adventure-select-a.png")
   }
 
   object Wdj {
