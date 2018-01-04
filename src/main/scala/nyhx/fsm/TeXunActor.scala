@@ -105,7 +105,7 @@ class TeXunActor() extends FSM[BaseStatus, BaseData] with FsmHelper[BaseStatus, 
       }
   }
   when(Finish)(finish)
-  onTransition(onFinish(Finish))
+  override def FinishStatus: BaseStatus = Finish
 
   def startTx() = SeqenceActor(
     goToTeXun(),

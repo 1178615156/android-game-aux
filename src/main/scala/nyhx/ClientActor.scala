@@ -4,7 +4,6 @@ import akka.actor.{FSM, Props}
 import nyhx.fsm._
 import nyhx.sequence._
 import org.slf4j.LoggerFactory
-import utensil.macros.ActorOf
 
 object ClientActor {
 
@@ -65,9 +64,9 @@ class ClientActor(args: Seq[String]) extends FSM[Status, Data] with FsmHelper[St
 
   def run = ReplaceActor.apply(10, SeqenceActor.of(
     //    map(Tx) -> "tx",
-    map(Export) -> "export",
-    map(War) -> "war",
-    map(Dismissed) -> "dismissed"
+//    NameProps("export", map(Export)),
+    NameProps("war", map(War)),
+    NameProps("dismissed", map(Dismissed))
   ))
 
   startWith(Run, of(run, "run"))
@@ -79,4 +78,6 @@ class ClientActor(args: Seq[String]) extends FSM[Status, Data] with FsmHelper[St
   when(Tx)(work(nextStatus = goto(War).using(actorOf(map(War)))))
   when(Wdj)(work(nextStatus = goto(War).using(actorOf(map(War)))))
   when(Finish)(finish)
+
+  override def FinishStatus: BaseStatus = Finish
 }

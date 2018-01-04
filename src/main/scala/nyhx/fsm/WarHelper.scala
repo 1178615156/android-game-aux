@@ -43,10 +43,11 @@ object WarHelper {
     sureWarReward()
   )
 
-  def randomPoint(point: Point) = SeqenceActor(
+  def randomPoint(point: Point) = SeqenceActor.of(
     FindActor.waitOf(FindActor.IsFind, Find(Images.Adventure.navigateCondition)),
     tapWarPoint(point),
     FindActor.waitIsFind(Find(Images.Adventure.selectA)),
+    JustActor.save(),
     FindActor.keepTouch(
       Find(Images.Adventure.needSurvey).map(_.withThreshold(0.85)) or
         Find(Images.Adventure.selectA)),

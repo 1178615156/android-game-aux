@@ -2,9 +2,9 @@ package nyhx.fsm
 
 import akka.actor.{FSM, Props}
 import models.{ClientRequest, Commands, Point}
+import nyhx.ClientActor.Status
 import nyhx.fsm.FindActor.IsFind
 import nyhx.{Find, Images}
-import Find.FindPicBuildingWithRun
 import utensil.{IsFindPic, NoFindPic}
 
 object DismissedActor {
@@ -31,7 +31,7 @@ object DismissedActor {
   type Data = BaseData
 }
 
-import DismissedActor._
+import nyhx.fsm.DismissedActor._
 
 /**
   * goto gruen
@@ -92,7 +92,8 @@ class DismissedActor extends FSM[Status, Data] with FsmHelper[Status, Data] {
   }
   when(Determine)(work(nextStatus = goto(SelectStudent).using(dismissedSelectActor())))
   when(Finish)(finish)
-  onTransition(onFinish(Finish))
+  override def FinishStatus: BaseStatus = Finish
+
 }
 
 class DismissedSelectActor extends FSM[Status, Data] with FsmHelper[Status, Data] {
@@ -137,7 +138,8 @@ class DismissedSelectActor extends FSM[Status, Data] with FsmHelper[Status, Data
   }
 
   when(Finish)(finish)
-  onTransition(onFinish(Finish))
+  override def FinishStatus: BaseStatus = Finish
+
 }
 
 

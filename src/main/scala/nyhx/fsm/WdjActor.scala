@@ -58,7 +58,9 @@ class WdjWarActor extends FSM[Status, Data]
   when(StartWar)(work(nextStatus = goto(WaitWarEnd).using(waitWarEnd())))
   when(WaitWarEnd)(work(nextStatus = goto(SureWarResult).using(NoData)))
   when(SureWarResult)(sureWarResult())
-  when(Finish) { case _ => logger.info("finish"); stay() }
+  when(Finish)(finish)
+
+  override def FinishStatus: BaseStatus = Finish
 
 }
 
@@ -92,11 +94,9 @@ class WdjActor(totalWarNum: Int = 10) extends FSM[Status, Data] with FsmHelper[S
       goto(Finish)
   }
 
-  when(Finish) { case _ =>
-    logger.info("finish")
-    stay()
-  }
+  when(Finish)(finish)
 
+  override def FinishStatus: BaseStatus = Finish
 
   val logger = LoggerFactory.getLogger("wdj")
 }

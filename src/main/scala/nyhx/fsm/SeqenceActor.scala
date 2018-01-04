@@ -21,7 +21,10 @@ trait MyFsmAct extends FSM[BaseStatus, Any] with FsmHelper[BaseStatus, Any] {
       stay()
   }
   when(Finish)(finish)
-  onTransition(onFinish(Finish))
+
+  override def FinishStatus: BaseStatus = Finish
+
+
 }
 
 trait MyAct extends Actor {
@@ -41,8 +44,8 @@ trait MyAct extends Actor {
 
 object SeqenceActor {
 
-  def of(props: (Props, String)*) = Props(new MyAct {
-    private var workSeq = props.map { case (a, n) => context.actorOf(a, n) }
+  def of(nps: NameProps*) = Props(new MyAct {
+    private var workSeq = nps.map(e => e.name.map(s => context.actorOf(e.props, s)).getOrElse(context.actorOf(e.props)))
     context.become {
       case c: ClientRequest =>
         workSeq.head forward c
@@ -56,6 +59,22 @@ object SeqenceActor {
         }
     }
   })
+
+//  def of(props: (Props, String)*) = Props(new MyAct {
+//    private var workSeq = props.map { case (a, n) => context.actorOf(a, n) }
+//    context.become {
+//      case c: ClientRequest =>
+//        workSeq.head forward c
+//
+//      case TaskFinish =>
+//        if(workSeq.tail.nonEmpty) {
+//          workSeq = workSeq.tail
+//        } else {
+//          context.parent ! TaskFinish
+//          context.become(Actor.emptyBehavior)
+//        }
+//    }
+//  })
 
   def apply(props: Props*): Props = Props(new MyAct {
     private var workSeq = props.map(context.actorOf)
@@ -88,6 +107,15 @@ object JustActor {
   def justDelay(time: Int): Props = apply(Commands().delay(time))
 
   def justTap(point: Point) = apply(Commands().tap(point))
+
+  def save() = NameProps("just-save", Props(new MyFsmAct {
+    exec { c =>
+      better.files.File(c.image.name).copyTo(
+        better.files.File(s"D:\\nyhx\\${System.currentTimeMillis()}.png")
+      )
+      Build.goto(FinishStatus).replying(Commands().delay(0)).build()
+    }
+  }))
 }
 
 object ReplaceActor {
