@@ -56,7 +56,9 @@ class ExportGetRewardActor(area: Point) extends FSM[BaseStatus, BaseData]
       }
   }
   when(Finish)(finish)
-  onTransition(onFinish(Finish))
+
+  override def FinishStatus: BaseStatus = Finish
+
 }
 
 
@@ -74,7 +76,7 @@ class ExportActor(task: ExportTask)
 
   object StartExport extends BaseStatus
 
-  val logger = LoggerFactory.getLogger("export")
+  private val logger = LoggerFactory.getLogger("export")
 
   def getReward = Props(new ExportGetRewardActor(task.area))
 
@@ -123,7 +125,9 @@ class ExportActor(task: ExportTask)
   when(CloseX)(work(nextStatus = goto(Finish)))
   when(StartExport)(work(nextStatus = goto(Finish)))
   when(Finish)(finish)
-  onTransition(onFinish(Finish))
+
+  override def FinishStatus: BaseStatus = Finish
+
 }
 
 
@@ -149,13 +153,10 @@ object ExportActor {
       Points.Explore.Map.three, Some(Points.Explore.FiveThreeDirect.two)),
   )
 
-  def run() =
-    SeqenceActor.of(
-      (ScenesActor.goToExport() -> "goToExport") +: exportList.map(e => Props(new ExportActor(e)) -> e.toString): _*
-    )
-
-//  SeqenceActor(
-//    ScenesActor.goToExport() +: exportList.map(e => Props(new ExportActor(e))): _*)
+  def run() = {
+    val x = (ScenesActor.goToExport() -> "goToExport") :: exportList.map(e => Props(new ExportActor(e)) -> e.toString)
+    SeqenceActor.of((x :+ (FindActor.waitIsFind(Find(Images.returns))) -> "wait-find-return"): _*)
+  }
 
 }
 

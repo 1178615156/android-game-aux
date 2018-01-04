@@ -92,6 +92,15 @@ object Points {
         val boss = Point(805, 353)
       }
 
+      object Five {
+        val b    = Point(164, 297)
+        val c    = Point(308, 303)
+        val d    = Point(536, 138)
+        val f    = Point(481, 289)
+        val h    = Point(658, 274)
+        val boos = Point(835, 229)
+      }
+
     }
 
     val next = Point(914, 306, "next")

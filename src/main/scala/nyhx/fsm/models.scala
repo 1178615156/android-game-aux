@@ -1,11 +1,17 @@
 package nyhx.fsm
 
-import akka.actor.ActorRef
+import scala.language.implicitConversions
+
+import akka.actor.{ActorRef, Props}
 
 
+case class NameProps(name: Option[String], props: Props)
 
+object NameProps {
+  def apply(name: String, props: Props): NameProps = new NameProps(Some(name), props)
 
-
+  implicit def props2nameProps(props: Props): NameProps = NameProps(None, props)
+}
 
 trait TaskFinish
 

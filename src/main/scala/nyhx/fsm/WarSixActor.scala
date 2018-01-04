@@ -28,8 +28,9 @@ object WarTowActor {
   )
 
 }
-object WarOneActor{
-  def four_boss(num:Int) = SeqenceActor(
+
+object WarOneActor {
+  def four_boss(num: Int) = SeqenceActor(
     WarHelper.goToAdventure(),
     WarHelper.goToWarArea(Points.Area.one, 4),
     ReplaceActor(num, SeqenceActor(
@@ -41,6 +42,18 @@ object WarOneActor{
       WarHelper.warPoint(Points.Adventure.One.Four.boss),
 
       JustActor.justDelay(2000)
+    ))
+  )
+
+  def five_boos(num: Int) = SeqenceActor(
+    WarHelper.goToAdventure(),
+    WarHelper.goToWarArea(Points.Area.one, 5),
+    ReplaceActor(num, SeqenceActor(
+      WarHelper.warReady(),
+      WarHelper.warPoint(Points.Adventure.One.Five.b),
+      WarHelper.randomPoint(Points.Adventure.One.Five.c),
+      WarHelper.warPoint(Points.Adventure.One.Five.d),
+      WarHelper.warPoint(Points.Adventure.One.Five.boos),
     ))
   )
 }

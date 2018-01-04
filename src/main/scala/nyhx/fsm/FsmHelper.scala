@@ -5,10 +5,14 @@ import models.{ClientRequest, Commands, Point}
 import utensil.macros.ActorOf
 
 
-trait FsmHelper[S, D] extends ActorOf{
-  this: FSM[S, D] =>
+trait FsmHelper[S, D] extends FSM[S, D] with ActorOf {
 
-  def of(props: Props, name: String): ActorRef = context.actorOf(props, name.replace(" ","-"))
+  def of(props: Props, name: String): ActorRef = context.actorOf(props, name.replace(" ", "-"))
+
+  def of(nameProps: NameProps): ActorRef = nameProps.name match {
+    case Some(x) => context.actorOf(nameProps.props, x)
+    case None    => context.actorOf(nameProps.props)
+  }
 
   class Build[A](private val state: State) {
     def replying(commands: Commands) =
@@ -56,13 +60,20 @@ trait FsmHelper[S, D] extends ActorOf{
 
   def finish: StateFunction = {
     case _ =>
-      log.warning("dismiss select actor finish")
+      log.warning("actor finish")
       stay()
   }
-
+  @deprecated("", "")
   def onFinish(F: S): TransitionHandler = {
-    case x -> F =>
+    case x -> F => context.parent ! TaskFinish
+  }
+  def FinishStatus: S
+
+  onTransition {
+    case x -> f if f == FinishStatus =>
       context.parent ! TaskFinish
   }
+
+
 }
 

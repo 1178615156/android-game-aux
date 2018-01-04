@@ -85,7 +85,7 @@ object JustActor {
     }
   })
 
-  def justDelay(time: Int) = apply(Commands().delay(time))
+  def justDelay(time: Int): Props = apply(Commands().delay(time))
 
   def justTap(point: Point) = apply(Commands().tap(point))
 }
