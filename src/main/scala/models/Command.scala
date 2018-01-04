@@ -22,6 +22,8 @@ case class Commands(seq: Command*) {
   def tap(point: Point) = add(TapCommand(point.x, point.y))
 
   def delay(time: Int) = add(DelayCommand(time))
+
+  def toJsonString = seq.map(_.toJsonString).mkString("[",",","]")
 }
 
 

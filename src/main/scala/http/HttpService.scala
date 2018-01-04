@@ -1,7 +1,7 @@
 package http
 
 
-import scala.concurrent.ExecutionContextExecutor
+import scala.concurrent.{ExecutionContextExecutor, Future}
 import scala.concurrent.duration._
 import scala.util.{Failure, Success}
 
@@ -16,6 +16,7 @@ import akka.stream.scaladsl.FileIO
 import akka.util.Timeout
 import better.files._
 import http.CollectRequestInfo.collectRequestInfo
+import jep.JepException
 import models.{ClientRequest, Commands, DelayCommand, Image}
 import org.slf4j.LoggerFactory
 import play.api.libs.json.Json
@@ -26,6 +27,7 @@ trait AkkaSources {
   implicit val executionContext: ExecutionContextExecutor = system.dispatcher
 }
 
+case class FileIsNull() extends Exception("file is mull")
 class HttpService(workActor: ActorRef)(implicit akkaSources: AkkaSources) {
 
   private  val logger           = LoggerFactory.getLogger("http-service")
@@ -52,13 +54,18 @@ class HttpService(workActor: ActorRef)(implicit akkaSources: AkkaSources) {
             .runWith(FileIO.toPath(new java.io.File(fileName).toPath))
             .map(_ => better.files.File(fileName))
 
-          val feature = uploadedF.flatMap(file =>
+          val future= uploadedF.flatMap(file =>
+            if (file.size ==0)
+              Future.failed(FileIsNull())
+            else
             workActor
               .ask(ClientRequest(Image(file.pathAsString))).mapTo[Commands]
               .map(e => e.seq.map(_.toJsonString).mkString("[", ",", "]"))
           )
-          onComplete(feature) {
+          onComplete(future) {
             case Success(x) => complete(x)
+            case Failure(FileIsNull())=>
+              complete(Commands().delay(1000).toJsonString)
             case Failure(x) =>
               x.printStackTrace()
               System.exit(-1)
@@ -83,9 +90,12 @@ class HttpService(workActor: ActorRef)(implicit akkaSources: AkkaSources) {
           .map(_.seq.map(_.toJsonString).mkString(";"))
         //将结果返回client
         onComplete(feature) {
-          case Success(x) => complete(x)
-          case Failure(x) =>
+          case Success(x)               => complete(x)
+          case Failure(x: JepException) =>
             x.printStackTrace()
+            complete(Commands().delay(1000).toJsonString)
+          case Failure(e)               =>
+            e.printStackTrace()
             System.exit(-1)
             ???
         }
