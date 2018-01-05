@@ -63,17 +63,20 @@ trait FsmHelper[S, D] extends FSM[S, D] with ActorOf {
       log.warning("actor finish")
       stay()
   }
+
   @deprecated("", "")
   def onFinish(F: S): TransitionHandler = {
     case x -> F => context.parent ! TaskFinish
   }
+
   def FinishStatus: S
 
   onTransition {
     case x -> f if f == FinishStatus =>
       context.parent ! TaskFinish
+    case x -> f if f == Error =>
+      context.parent ! TaskFailure
   }
-
 
 }
 

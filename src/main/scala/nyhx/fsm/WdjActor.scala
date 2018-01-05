@@ -37,9 +37,9 @@ class WdjWarActor extends FSM[Status, Data]
 
   val logger = LoggerFactory.getLogger("wdj-war")
 
-  def startWar() = WorkActor(actorOf(FindActor.keepTouch(Find(Images.Wdj.matchBattle))))
+  def startWar() = WorkActor(of(FindActor.keepTouch(Find(Images.Wdj.matchBattle))))
 
-  def waitWarEnd() = WorkActor(actorOf(FindActor.waitOf(FindActor.IsFind, Find(Images.Wdj.fightResult))))
+  def waitWarEnd() = WorkActor(of(FindActor.waitOf(FindActor.IsFind, Find(Images.Wdj.fightResult))))
 
   def sureWarResult(): StateFunction = {
     case Event(c: ClientRequest, _) =>

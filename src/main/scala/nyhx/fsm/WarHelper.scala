@@ -43,41 +43,51 @@ object WarHelper {
     sureWarReward()
   )
 
-  def randomPoint(point: Point) = SeqenceActor.of(
-    FindActor.waitOf(FindActor.IsFind, Find(Images.Adventure.navigateCondition)),
-    tapWarPoint(point),
-    FindActor.waitIsFind(Find(Images.Adventure.selectA)),
-    JustActor.save(),
-    FindActor.keepTouch(
-      Find(Images.Adventure.needSurvey).map(_.withThreshold(0.85)) or
-        Find(Images.Adventure.selectA)),
-    Props(new MyFsmAct {
-      exec(c => Find(Images.Adventure.navigateCondition).run(c) match {
-        case IsFindPic(point) => goto(Finish).replying(Commands().delay(0))
-        case NoFindPic()      => stay().replying(Commands().tap(Point(1, 1)))
+  def randomPoint(point: Point) =
+    NameProps("random point", SeqenceActor(
+      FindActor.waitOf(FindActor.IsFind, Find(Images.Adventure.navigateCondition)),
+      tapWarPoint(point),
+      FindActor.waitIsFind(Find(Images.Adventure.selectA)),
+      JustActor.save(),
+      FindActor.keepTouch(Find(Images.Adventure.selectA)),
+      Props(new MyFsmAct {
+        exec(c => (Find(Images.Adventure.navigateCondition) or Find(Images.returns) or Find(Images.start)).run(c) match {
+          case IsFindPic(point) => goto(Finish).replying(Commands().delay(0))
+          case NoFindPic()      => stay().replying(Commands().tap(Point(1, 1)))
+        })
       })
-    })
-  )
+    ))
 
-  def warEarlyEnd() = SeqenceActor(
+  def randomPointCheck() =
+    ConditionActor.of(
+      NameProps("check status", Props(new MyFsmAct {
+        exec(c => Find(Images.Adventure.navigateCondition).run(c) -> Find(Images.start).run(c) match {
+          case (IsFindPic(_), NoFindPic()) => Build.goto(Finish).using(NoData).replying(Commands()).build()
+          case (NoFindPic(), IsFindPic(_)) => Build.goto(Error).using(NoData).replying(Commands()).build()
+          case (NoFindPic(), NoFindPic())  => Build.stay().replying(Commands()).build()
+        })
+      }))
+    )
+
+
+  def warEarlyEnd() = NameProps("war early end", SeqenceActor(
     FindActor.waitIsFind(Find(Images.returns)),
     FindActor.touch(Find(Images.returns)),
     FindActor.waitIsFind(Find(Images.determine)),
     FindActor.touch(Find(Images.determine)),
     FindActor.waitIsFind(Find(Images.Adventure.grouping))
-
-  )
+  ))
 
   def checkMpEmpty() = Props(new MyAct {
     exec { c =>
       val result = Find(Images.Adventure.mpEmpty).map(_.withThreshold(0.99)).run(c)
       result match {
         case IsFindPic(point) =>
-          logger.warn("mp empty in war;")
+          log.warning("mp empty in war;")
           sender() ! Commands()
           context.parent ! TaskFailure(MpEmptyException())
         case NoFindPic()      =>
-          logger.info("check mp success;")
+          log.info("check mp success;")
           sender() ! Commands()
           context.parent ! TaskFinish
       }
@@ -86,7 +96,7 @@ object WarHelper {
 
   def checkWarIsStart() = FindActor.keepTouch(Find(Images.start))
 
-  def tapWarPoint(point: Point) = Props(new MyAct {
+  def tapWarPoint(point: Point) = NameProps("tap war point", Props(new MyAct {
     exec(c =>
       Find(Images.start).run(c) match {
         case NoFindPic()  =>
@@ -97,15 +107,15 @@ object WarHelper {
           context.parent ! TaskFinish
       }
     )
-  })
+  }))
 
   def waitWarEnd() = Props(new MyFsmAct {
     exec(c => (Find(Images.Adventure.totalTurn) or Find(Images.determine)).run(c) match {
       case IsFindPic(point) =>
-        logger.info("war is end")
+        log.info("war is end")
         Build.goto(Finish).replying(Commands().tap(point).delay(0)).build()
       case NoFindPic()      =>
-        logger.info("war no end")
+        log.info("war no end")
         Build.stay().replying(Commands()).build()
     })
   })
@@ -114,11 +124,11 @@ object WarHelper {
   def sureWarReward() = Props(new MyAct {
     exec(c => Find(Images.returns).run(c) match {
       case IsFindPic(point) =>
-        logger.info("get war reward ; go to next")
+        log.info("get war reward ; go to next")
         replay(Commands().delay(0))
         finishTask()
       case NoFindPic()      =>
-        logger.info("have not get war reward ; try again")
+        log.info("have not get war reward ; try again")
         replay(Commands().tap(Point(1, 1)))
     })
   })

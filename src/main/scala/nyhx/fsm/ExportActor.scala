@@ -156,7 +156,7 @@ object ExportActor {
   def run() = {
     val x = NameProps("goToExport", ScenesActor.goToExport()) :: exportList.map(e => NameProps(e.toString, Props(new ExportActor(e))))
 
-    SeqenceActor.of(x :+ NameProps("wait-find-return", FindActor.waitIsFind(Find(Images.returns))): _*)
+    SeqenceActor(x :+ FindActor.waitIsFind(Find(Images.returns)): _*)
   }
 
 }

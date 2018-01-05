@@ -28,6 +28,7 @@ trait AkkaSources {
 }
 
 case class FileIsNull() extends Exception("file is mull")
+
 class HttpService(workActor: ActorRef)(implicit akkaSources: AkkaSources) {
 
   private  val logger           = LoggerFactory.getLogger("http-service")

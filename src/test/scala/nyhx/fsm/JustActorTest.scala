@@ -10,7 +10,7 @@ class JustActorTest extends WordSpec with AkkaTestSources with ImageTestSources 
 
 
   "tap" in {
-    val actor = testProbe.childActorOf(JustActor.justTap(Point(1, 1)))
+    val actor = testProbe.childActorOf(JustActor.justTap(Point(1, 1)).props)
     actor ! ClientRequest(original.room)
     expectMsg(Commands().tap(Point(1, 1)))
     testProbe.expectMsg(TaskFinish)
