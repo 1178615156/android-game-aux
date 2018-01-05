@@ -37,7 +37,7 @@ object FindActor {
 
   object Nothing extends Condition
 
-  def touch[T <: FindPicBuild.Goal](f: Find[T], con: Condition = MustFind) = Props(new FindActor(Touch, con, f))
+  def touch[T <: FindPicBuild.Goal](f: Find[T], con: Condition = MustFind) = NameProps("touch",Props(new FindActor(Touch, con, f)))
 
   def keepTouch[T <: FindPicBuild.Goal](f: Find[T]) = NameProps("keep touch", Props(new FindActor(KeepTouch, Nothing, f)))
 

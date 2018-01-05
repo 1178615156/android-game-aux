@@ -13,7 +13,7 @@ class FindActorTest extends WordSpec with ImageTestSources with AkkaTestSources 
 
   "touch" in {
     val parent = TestProbe()
-    val actor = parent.childActorOf(FindActor.touch(Find(Images.returns)))
+    val actor = parent.childActorOf(FindActor.touch(Find(Images.returns)).props)
 
     val c = ClientRequest(original.adventure)
     actor.tell(c, testActor)

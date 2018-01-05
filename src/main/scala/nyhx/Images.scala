@@ -98,7 +98,7 @@ object Images {
       .map(e => if(e.startsWith("images-")) e else s"images-goal/$e")
       .get
 
-    require(File(fileName).exists, fileName + " is not exists")
+//    require(File(fileName).exists, fileName + " is not exists")
     models.Image(File(fileName).pathAsString)
   }
 }

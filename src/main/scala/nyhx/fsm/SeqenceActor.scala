@@ -3,6 +3,11 @@ package nyhx.fsm
 import akka.actor.{Actor, ActorLogging, ActorRef, FSM, Props}
 import models.{ClientRequest, Commands, Point}
 
+object ActorNameIter {
+  val i = new java.util.concurrent.atomic.AtomicLong(0)
+
+  def apply(): Long = i.getAndIncrement()
+}
 
 trait MyFsmAct extends FSM[BaseStatus, Any] with FsmHelper[BaseStatus, Any] {
 
@@ -35,6 +40,11 @@ trait MyAct extends Actor with ActorLogging {
     case c: ClientRequest => f(c)
   }
 
+  def of(nameProps: NameProps): ActorRef = nameProps.name match {
+    case Some(x) => context.actorOf(nameProps.props, x + "$" + ActorNameIter())
+    case None    => context.actorOf(nameProps.props)
+  }
+
   def become(behavior: Actor.Receive): Unit = context.become(behavior)
 
   override def receive: Receive = Actor.emptyBehavior
@@ -44,7 +54,7 @@ trait MyAct extends Actor with ActorLogging {
 object SeqenceActor {
 
   def of(nps: NameProps*) = Props(new MyAct {
-    private var workSeq = nps.map(e => e.name.map(s => context.actorOf(e.props, s)).getOrElse(context.actorOf(e.props)))
+    private var workSeq = nps.map(this.of)
     context.become {
       case c: ClientRequest =>
         workSeq.head forward c
@@ -59,40 +69,7 @@ object SeqenceActor {
     }
   })
 
-  //  def of(props: (Props, String)*) = Props(new MyAct {
-  //    private var workSeq = props.map { case (a, n) => context.actorOf(a, n) }
-  //    context.become {
-  //      case c: ClientRequest =>
-  //        workSeq.head forward c
-  //
-  //      case TaskFinish =>
-  //        if(workSeq.tail.nonEmpty) {
-  //          workSeq = workSeq.tail
-  //        } else {
-  //          context.parent ! TaskFinish
-  //          context.become(Actor.emptyBehavior)
-  //        }
-  //    }
-  //  })
-
   def apply(props: NameProps*) = of(props: _*)
-
-  //    Props(new MyAct {
-  //    private var workSeq = props.map(context.actorOf)
-  //    context.become {
-  //      case c: ClientRequest =>
-  //        workSeq.head forward c
-  //
-  //      case TaskFinish =>
-  //        if(workSeq.tail.nonEmpty) {
-  //          workSeq = workSeq.tail
-  //        } else {
-  //          context.parent ! TaskFinish
-  //          context.become(Actor.emptyBehavior)
-  //        }
-  //    }
-  //  })
-
 }
 
 object JustActor {
@@ -164,13 +141,14 @@ object ReplaceActor {
 
     startWith(Run, WarNum(0, of(props)))
     when(Run) {
-      case Event(c: ClientRequest, WarNum(i, actorRef))               =>
+      case Event(c: ClientRequest, WarNum(i, actorRef))              =>
         actorRef forward c
         stay()
-      case Event(TaskFinish, WarNum(i, actorRef)) if i < totalWarNum  =>
+      case Event(TaskFinish, WarNum(i, actorRef)) if i < totalWarNum =>
         log.info(s"$i/$totalWarNum - end")
         context.stop(actorRef)
-        goto(Run).using(WarNum(i + 1, of(props)))
+        goto(Run).using(WarNum(i + 1, of(props.copy(name = props.name.map(_ + s"_${i + 1}")))))
+
       case Event(TaskFinish, WarNum(i, actorRef)) if i >= totalWarNum =>
         context.stop(actorRef)
         goto(Finish)

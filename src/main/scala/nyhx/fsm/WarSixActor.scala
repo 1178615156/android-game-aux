@@ -48,20 +48,20 @@ object WarOneActor {
   def five_boos(num: Int) = NameProps("five boos", SeqenceActor(
     WarHelper.goToAdventure(),
     WarHelper.goToWarArea(Points.Area.one, 5),
-    NameProps("replace", ReplaceActor(num, SeqenceActor(
+    NameProps("replace", ReplaceActor(num, NameProps("start-war", SeqenceActor(
       WarHelper.warReady(),
       WarHelper.warPoint(Points.Adventure.One.Five.b),
       WarHelper.randomPoint(Points.Adventure.One.Five.c),
-      WarHelper.randomPointCheck()
-        .onSuccess(NameProps("success",SeqenceActor(
+      NameProps("condition select", WarHelper.randomPointCheck()
+        .onSuccess(NameProps("continue", SeqenceActor(
           WarHelper.warPoint(Points.Adventure.One.Five.d),
           WarHelper.warPoint(Points.Adventure.One.Five.boos)
         )))
         .onFailure(
           WarHelper.warEarlyEnd()
         )
-        .build()
-    )))
+        .build())
+    ))))
   ))
 }
 

@@ -64,7 +64,7 @@ class ClientActor(args: Seq[String]) extends FSM[Status, Data] with FsmHelper[St
 
   def run = ReplaceActor.apply(10, SeqenceActor(
     //    map(Tx) -> "tx",
-//    NameProps("export", map(Export)),
+    NameProps("export", map(Export)),
     NameProps("war", map(War)),
     NameProps("dismissed", map(Dismissed))
   ))

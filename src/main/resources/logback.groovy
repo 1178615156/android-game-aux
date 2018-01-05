@@ -10,7 +10,9 @@ import static ch.qos.logback.classic.Level.DEBUG
 import static ch.qos.logback.classic.Level.INFO
 
 encoderDefault = "%d{yyyy-MM-dd HH:mm:ss} %-5level [%logger{50}] %msg%n"
-encoderAkka = "%d{yyyy-MM-dd HH:mm:ss} %-5level [%X{akkaSource}] %msg%n"
+encoderDefault = "%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} %X{akkaSource} %msg%n"
+encoderAkka = "%d{yyyy-MM-dd HH:mm:ss} %-5level [%X{akkaSource}] [%logger{50}] %msg%n"
+encoderAkka = "%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} %X{akkaSource} %msg%n"
 
 def mkConsole(name, encoderPattern) {
     appender(name, ConsoleAppender) {

@@ -50,12 +50,12 @@ object WarHelper {
       FindActor.waitIsFind(Find(Images.Adventure.selectA)),
       JustActor.save(),
       FindActor.keepTouch(Find(Images.Adventure.selectA)),
-      Props(new MyFsmAct {
+      NameProps("wait select finish", Props(new MyFsmAct {
         exec(c => (Find(Images.Adventure.navigateCondition) or Find(Images.returns) or Find(Images.start)).run(c) match {
           case IsFindPic(point) => goto(Finish).replying(Commands().delay(0))
           case NoFindPic()      => stay().replying(Commands().tap(Point(1, 1)))
         })
-      })
+      }))
     ))
 
   def randomPointCheck() =
@@ -78,7 +78,7 @@ object WarHelper {
     FindActor.waitIsFind(Find(Images.Adventure.grouping))
   ))
 
-  def checkMpEmpty() = Props(new MyAct {
+  def checkMpEmpty() = NameProps("check mp empty", Props(new MyAct {
     exec { c =>
       val result = Find(Images.Adventure.mpEmpty).map(_.withThreshold(0.99)).run(c)
       result match {
@@ -92,7 +92,7 @@ object WarHelper {
           context.parent ! TaskFinish
       }
     }
-  })
+  }))
 
   def checkWarIsStart() = FindActor.keepTouch(Find(Images.start))
 
