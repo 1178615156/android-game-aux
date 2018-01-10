@@ -1,6 +1,7 @@
 package decoder
 
 import java.io.PrintWriter
+import java.nio.file.{Files, Paths}
 
 import scala.io.Source
 
@@ -20,8 +21,9 @@ object ExploreDiscover {
   case class Empty(id: Int, subeventId: Seq[Int]) extends Tree
 
 
-  def readOf[T: Reads](f: String) = Source.fromFile(s"D:\\nyhx\\text-csv\\$f.json")
+  def readOf[T: Reads](f: String) = Source.fromFile(s"D:/nyhx/text-csv/$f.json")
     .getLines()
+    .toList
     .map(s => Json.parse(s).as[T])
 
   val explore_mission  = readOf[ExploreMission]("explore_mission")
@@ -36,12 +38,12 @@ object ExploreDiscover {
   val condition_map        = condition.map(e => e.id -> e).toMap
 
   def textIdsToString(seq: Seq[Int]) = {
-    seq.map(explore_word_map.apply).map(_.text).map("  " + _).mkString("\n")
+    seq.map(explore_word_map.get).map(_.map(_.text).getOrElse("UNKONW")).map("  " + _).mkString("\n")
   }
 
   def subeventToString(subevent: ExploreSubevent) = {
 
-    s"""${subevent.textId.map(explore_word_map.apply).map(_.text).mkString("\n")}
+    s"""${textIdsToString(subevent.textId).split("\n").map(_.drop(2)).mkString("\n")}
        |if (${condition_map(subevent.condition).desc})
        |${textIdsToString(subevent.textIdForT)}
        |else
@@ -94,12 +96,14 @@ object ExploreDiscover {
         nexts.toList match {
           case a :: b :: Nil => a -> b
           case a :: Nil => a -> a
-          case _ => ???
+          case e =>
+            println(tree  )
+            ???
         }
       }
 
       val before = subevents.init.map { subevent =>
-        s"""if (${condition_map(subevent.condition).desc})
+        s"""  if (${condition_map(subevent.condition).desc})
            |${textIdsToString(subevent.textIdForT).split("\n").map("  " + _).mkString("\n")}
            |  else
            |${textIdsToString(subevent.textIdForF).split("\n").map("  " + _).mkString("\n")}""".stripMargin
@@ -130,12 +134,16 @@ object ExploreDiscover {
   }
 
   def main(args: Array[String]): Unit = {
-    writeFile("1-1.txt", treeToString(findEvent(11001)))
-    writeFile("1-2.txt", treeToString(findEvent(12001)))
-    writeFile("1-3-1.txt", treeToString(findEvent(13001)))
-    writeFile("1-3-2.txt", treeToString(findEvent(14001)))
-    writeFile("1-3-3.txt", treeToString(findEvent(15001)))
+    explore_mission.sortBy(_.id).foreach(em=>
+      try{
+        writeFile(s"${em.id}-${em.name}.txt", treeToString(findEvent(em.eventId)))
 
+      }catch {
+        case e =>
+          e.printStackTrace()
+      }
+
+    )
 
   }
 }
