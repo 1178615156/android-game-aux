@@ -4,6 +4,8 @@ import java.io.PrintWriter
 
 import scala.io.Source
 
+import com.fasterxml.jackson.core.JsonParser
+import com.fasterxml.jackson.databind.ObjectMapper
 import play.api.libs.json.{JsObject, JsString, Json}
 
 object WriteText {
