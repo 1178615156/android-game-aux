@@ -4,17 +4,73 @@ import java.io.PrintWriter
 
 import scala.io.Source
 
-import play.api.libs.json.{JsObject, JsString, Json}
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.typesafe.config.ConfigFactory
+import play.api.libs.json.{JsObject, JsString, JsValue, Json}
+
+//trait BaseHelper {
+//  val mapping = new ObjectMapper()
+//
+//  def readLua(fileName: String) = {
+//    val spear = "[\\n|\\t|\\s| |\t|\n]+"
+//    val s =
+//      Source
+//      .fromFile(s"F:\\software\\android\\res-decrypt\\codes\\shared\\conftable\\${fileName}.lua")
+//      .getLines().mkString("\n")
+//    """	{
+//      |		text = "声音？似乎有什么声音传到了耳朵了？是错觉吗？",
+//      |		word = "……",
+//      |		id = 3854,
+//      |		speaker = {
+//      |			3009
+//      |		},
+//      |		speakerWord = {
+//      |			"（或许…我的身世和图特大人也有千丝万缕的联系吧…）"
+//      |		}
+//      |	}
+//      |
+//    """.stripMargin
+//    val text = s
+//      .replace("\t", " ")
+//      .replace("return", "")
+//      .replaceAll(spear, "")
+//      .replaceAll("\\{(\\d+)\\}", "$1")
+//      .replaceAll("\\{([\\d|,]+)\\}", "[$1]")
+//      .replaceAll("\\{{2}(\".+\")\\}{2}", "$1")
+//      .replaceAll("\\{\"(.+)\"\\}", "$1")
+//      .replaceAll("\\[(\\d+)\\]",""" "$1" """)
+//      .replaceAll("([0-9|a-z|A-Z]+)=",""" "$1" = """)
+//      .replace("=", ":")
+//    if (text.startsWith("{{") && text.endsWith("}}")) s"[${text.tail.init}]"
+//    else
+//    text
+//  }
+//
+//  def readLua2Json(fileName: String): JsValue = {
+//    val text = readLua(fileName)
+//    Json.parse(mapping.readTree(text).toString)
+//  }
+//
+//  def writeFile(_fn: String, body: Seq[String]) = {
+//    val fn = if(_fn.endsWith(".csv") || _fn.endsWith(".json")) _fn else _fn + ".csv"
+//    val pw = new PrintWriter(s"D:/nyhx/text-csv/$fn")
+//    body.foreach(e => pw.append(e).append("\n"))
+//    pw.close()
+//  }
+//}
+//
+//object Read extends BaseHelper {
+//  def main(args: Array[String]): Unit = {
+////    readLua2Json("word")
+//    println(readLua("explore_word"))
+//    println(readLua2Json("explore_word"))
+//  }
+//}
 
 object WriteText {
 
 
-  def writeFile(_fn: String, body: Seq[String]) = {
-    val fn = if(_fn.endsWith(".csv") || _fn.endsWith(".json")) _fn else _fn + ".csv"
-    val pw = new PrintWriter(s"D:/nyhx/text-csv/$fn")
-    body.foreach(e => pw.append(e).append("\n"))
-    pw.close()
-  }
+
 
   def readText(f: String) =
     Source.fromFile(s"D:/nyhx/text/$f")
@@ -46,9 +102,42 @@ object WriteText {
       .map(_.as[JsObject])
       .map(js => (js - "ability") + ("ability" -> JsString(js("ability").toString().replace("\"", ""))))
       .map(_.as[HandBook])
-    val head = "characteristic, grade, race, id, information, name, ability"
-    val body = json.map(_.csvString)
-    writeFile("handbook", head +: body)
+    val body = json.map(e => Json.toJson(e).toString())
+    writeFile("handbook.json", body)
+  }
+
+  def target() = {
+    val text = readText("target").replace("nil", "null")
+    val json = Json.parse(text).as[JsObject].value.values.toList
+      .map(_.as[JsObject])
+      .map(js => Target(
+        id = js("id").as[Int],
+        filter = jsValue2values(js("filter")),
+        desc = js("desc").as[String]
+      ))
+    val body = json.map(e => Json.toJson(e).toString())
+    writeFile("target.json", body)
+  }
+
+  def school_mail() = {
+    val text = readText("school_mail").replace("nil", "null")
+    val json = Json.parse(text).as[JsObject].value.values.toList
+      .map(_.as[JsObject])
+      .map(js => SchoolMail(
+        content = js("content").as[String],
+        from = js("from").as[String],
+        `type` = js("type").as[Int],
+        title = js("title").as[String],
+        link = js("link").as[String],
+        id = js("id").as[Int],
+        sender = js("sender").as[String],
+        receive = js("receiver").as[String],
+        targets = js("targetId").as[JsObject].values.toList.map(_.as[Int]),
+        targetsCid = None ,
+        targetsValue = None
+      ))
+    val body = json.map(e => Json.toJson(e).toString())
+    writeFile("school_mail.json", body)
   }
 
   def monster_handbook() = {
@@ -89,7 +178,6 @@ object WriteText {
         word = js.apply("word").apply("1").as[String],
         unitName = js.apply("unitName").as[String]
       ))
-    json.take(2).foreach(println)
     val head = "word,unitName"
     val body = json.map(_.csvString)
     writeFile("personal_mission_word", head +: body)
@@ -152,10 +240,12 @@ object WriteText {
   }
 
   def main(args: Array[String]): Unit = {
-    explore_word()
-    explore_mission()
-    explore_event()
-    explore_subevent()
+        handbook()
+    //    explore_word()
+    //    explore_mission()
+    //    explore_event()
+    //    explore_subevent()
+    target()
   }
 }
 

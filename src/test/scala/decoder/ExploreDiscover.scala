@@ -7,6 +7,8 @@ import scala.io.Source
 
 import play.api.libs.json.{Json, Reads}
 
+
+
 object ExploreDiscover {
 
   trait Tree {
@@ -20,11 +22,6 @@ object ExploreDiscover {
 
   case class Empty(id: Int, subeventId: Seq[Int]) extends Tree
 
-
-  def readOf[T: Reads](f: String) = Source.fromFile(s"D:/nyhx/text-csv/$f.json")
-    .getLines()
-    .toList
-    .map(s => Json.parse(s).as[T])
 
   val explore_mission  = readOf[ExploreMission]("explore_mission")
   val explore_event    = readOf[ExploreEvent]("explore_event")
@@ -52,52 +49,52 @@ object ExploreDiscover {
   }
 
 
-//  def treeToString(tree: Tree): String = tree match {
-//    case Empty(id, subeventId)       =>
-//      s"""  $id
-//         |${subeventId.map(explore_subevent_map.apply).map(subeventToString).flatMap(_.split("\n")).map("  " + _).mkString("\n")}""".stripMargin
-//    case Node(id, nexts, subeventId) =>
-//
-//      val subevents = subeventId.map(explore_subevent_map.apply)
-//      val (true_next,false_next)= {
-//        nexts.toList match {
-//          case a :: b :: Nil => a -> b
-//          case a :: Nil => a -> a
-//          case _ => ???
-//        }
-//      }
-//
-//      val before = subevents.init.map { subevent =>
-//        s"""  sub-${subevent.id}
-//           |  if (${subevent.condition} - ${condition_map(subevent.condition).desc})
-//           |${textIdsToString(subevent.textIdForT).split("\n").map("  " + _).mkString("\n")}
-//           |  else
-//           |${textIdsToString(subevent.textIdForF).split("\n").map("  " + _).mkString("\n")}""".stripMargin
-//      }.mkString("\n")
-//      val subevent = explore_subevent_map(subeventId.last)
-//      s"""  $id
-//         |$before
-//         |  sub-${subevent.id}
-//         |${textIdsToString(subevent.textId)}
-//         |  if ${subevent.condition} - ${condition_map(subevent.condition).desc}
-//         |${textIdsToString(subevent.textIdForT).split("\n").map("  " + _).mkString("\n")}
-//         |${treeToString(true_next).split("\n").map("  " + _).mkString("\n")}
-//         |  else
-//         |${textIdsToString(subevent.textIdForF).split("\n").map("  " + _).mkString("\n")}
-//         |${treeToString(false_next).split("\n").map("  " + _).mkString("\n")}""".stripMargin
-//  }
+  //  def treeToString(tree: Tree): String = tree match {
+  //    case Empty(id, subeventId)       =>
+  //      s"""  $id
+  //         |${subeventId.map(explore_subevent_map.apply).map(subeventToString).flatMap(_.split("\n")).map("  " + _).mkString("\n")}""".stripMargin
+  //    case Node(id, nexts, subeventId) =>
+  //
+  //      val subevents = subeventId.map(explore_subevent_map.apply)
+  //      val (true_next,false_next)= {
+  //        nexts.toList match {
+  //          case a :: b :: Nil => a -> b
+  //          case a :: Nil => a -> a
+  //          case _ => ???
+  //        }
+  //      }
+  //
+  //      val before = subevents.init.map { subevent =>
+  //        s"""  sub-${subevent.id}
+  //           |  if (${subevent.condition} - ${condition_map(subevent.condition).desc})
+  //           |${textIdsToString(subevent.textIdForT).split("\n").map("  " + _).mkString("\n")}
+  //           |  else
+  //           |${textIdsToString(subevent.textIdForF).split("\n").map("  " + _).mkString("\n")}""".stripMargin
+  //      }.mkString("\n")
+  //      val subevent = explore_subevent_map(subeventId.last)
+  //      s"""  $id
+  //         |$before
+  //         |  sub-${subevent.id}
+  //         |${textIdsToString(subevent.textId)}
+  //         |  if ${subevent.condition} - ${condition_map(subevent.condition).desc}
+  //         |${textIdsToString(subevent.textIdForT).split("\n").map("  " + _).mkString("\n")}
+  //         |${treeToString(true_next).split("\n").map("  " + _).mkString("\n")}
+  //         |  else
+  //         |${textIdsToString(subevent.textIdForF).split("\n").map("  " + _).mkString("\n")}
+  //         |${treeToString(false_next).split("\n").map("  " + _).mkString("\n")}""".stripMargin
+  //  }
   def treeToString(tree: Tree): String = tree match {
     case Empty(id, subeventId)       =>
       s"""${subeventId.map(explore_subevent_map.apply).map(subeventToString).flatMap(_.split("\n")).map("  " + _).mkString("\n")}""".stripMargin
     case Node(id, nexts, subeventId) =>
 
       val subevents = subeventId.map(explore_subevent_map.apply)
-      val (true_next,false_next)= {
+      val (true_next, false_next) = {
         nexts.toList match {
           case a :: b :: Nil => a -> b
-          case a :: Nil => a -> a
-          case e =>
-            println(tree  )
+          case a :: Nil      => a -> a
+          case e             =>
+            println(tree)
             ???
         }
       }
@@ -118,6 +115,7 @@ object ExploreDiscover {
          |${textIdsToString(subevent.textIdForF).split("\n").map("  " + _).mkString("\n")}
          |${treeToString(false_next).split("\n").map("  " + _).mkString("\n")}""".stripMargin
   }
+
   def findEvent(id: Int): Tree = {
     val event = explore_event_map(id)
     if(event.nextId.isEmpty)
@@ -134,11 +132,11 @@ object ExploreDiscover {
   }
 
   def main(args: Array[String]): Unit = {
-    explore_mission.sortBy(_.id).foreach(em=>
-      try{
+    explore_mission.sortBy(_.id).foreach(em =>
+      try {
         writeFile(s"${em.id}-${em.name}.txt", treeToString(findEvent(em.eventId)))
 
-      }catch {
+      } catch {
         case e =>
           e.printStackTrace()
       }

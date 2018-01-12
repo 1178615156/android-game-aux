@@ -9,7 +9,7 @@ object Points {
   }
 
   object Area {
-    val one   = Point(176, 76, "1")
+    val one   = Point(94,78, "1")
     val two   = Point(285, 74, "2")
     val three = Point(391, 74, "3")
     val four  = Point(509, 73, "4")

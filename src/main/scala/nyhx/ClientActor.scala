@@ -40,9 +40,9 @@ class ClientActor(args: Seq[String]) extends FSM[Status, Data] with FsmHelper[St
     //default value
     val map: Map[Status, Props] = Map(
 //            War -> nyhx.fsm.WarTowActor.tow_b(warNum),
-            War -> nyhx.fsm.WarOneActor.four_boss(warNum),
+//            War -> nyhx.fsm.WarOneActor.four_boss(warNum),
 //      War -> nyhx.fsm.WarOneActor.five_boos(warNum).props,
-      //      War -> WarSixActor.four_b(warNum),
+            War -> WarSixActor.four_b(warNum),
       Dismissed -> Props(new fsm.DismissedActor),
       Export -> ExportActor.run(),
       Tx -> Props(new TeXunActor()),
@@ -64,7 +64,7 @@ class ClientActor(args: Seq[String]) extends FSM[Status, Data] with FsmHelper[St
 
   def run = ReplaceActor.apply(10, SeqenceActor(
 //    NameProps("tx", map(Tx)),
-    NameProps("export", map(Export)),
+//    NameProps("export", map(Export)),
     NameProps("war", map(War)),
     NameProps("dismissed", map(Dismissed))
   ))
